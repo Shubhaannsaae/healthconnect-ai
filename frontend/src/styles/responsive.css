@@ -1,0 +1,561 @@
+/* responsive.css - Responsive design helpers for HealthConnect AI */
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+    .mobile-stack {
+      @apply flex-col space-y-4 space-x-0;
+    }
+    
+    .mobile-full {
+      @apply w-full;
+    }
+    
+    .mobile-hidden {
+      @apply hidden;
+    }
+    
+    .mobile-text-center {
+      @apply text-center;
+    }
+    
+    .mobile-p-4 {
+      @apply p-4;
+    }
+    
+    .mobile-mx-4 {
+      @apply mx-4;
+    }
+    
+    .mobile-grid-1 {
+      @apply grid-cols-1;
+    }
+    
+    .mobile-text-sm {
+      @apply text-sm;
+    }
+    
+    .mobile-text-base {
+      @apply text-base;
+    }
+    
+    /* Mobile-specific health components */
+    .mobile-vital-signs {
+      @apply grid-cols-1 gap-3;
+    }
+    
+    .mobile-device-grid {
+      @apply grid-cols-1 gap-4;
+    }
+    
+    .mobile-dashboard {
+      @apply grid-cols-1 gap-4;
+    }
+    
+    .mobile-nav {
+      @apply flex-col space-y-2;
+    }
+    
+    .mobile-video-call {
+      @apply aspect-square;
+    }
+    
+    .mobile-chat {
+      @apply h-96;
+    }
+  }
+  
+  /* Tablet responsive utilities */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .tablet-grid {
+      @apply grid-cols-2 gap-4;
+    }
+    
+    .tablet-grid-3 {
+      @apply grid-cols-3 gap-4;
+    }
+    
+    .tablet-flex {
+      @apply flex;
+    }
+    
+    .tablet-hidden {
+      @apply hidden;
+    }
+    
+    .tablet-block {
+      @apply block;
+    }
+    
+    .tablet-p-6 {
+      @apply p-6;
+    }
+    
+    .tablet-mx-6 {
+      @apply mx-6;
+    }
+    
+    /* Tablet-specific health components */
+    .tablet-vital-signs {
+      @apply grid-cols-2 gap-4;
+    }
+    
+    .tablet-device-grid {
+      @apply grid-cols-2 gap-4;
+    }
+    
+    .tablet-dashboard {
+      @apply grid-cols-2 gap-6;
+    }
+    
+    .tablet-nav {
+      @apply flex-row space-x-4;
+    }
+    
+    .tablet-video-call {
+      @apply aspect-video;
+    }
+    
+    .tablet-chat {
+      @apply h-full;
+    }
+  }
+  
+  /* Desktop responsive utilities */
+  @media (min-width: 1025px) {
+    .desktop-grid {
+      @apply grid-cols-3 gap-6;
+    }
+    
+    .desktop-grid-4 {
+      @apply grid-cols-4 gap-6;
+    }
+    
+    .desktop-grid-5 {
+      @apply grid-cols-5 gap-6;
+    }
+    
+    .desktop-flex {
+      @apply flex;
+    }
+    
+    .desktop-hidden {
+      @apply hidden;
+    }
+    
+    .desktop-block {
+      @apply block;
+    }
+    
+    .desktop-p-8 {
+      @apply p-8;
+    }
+    
+    .desktop-mx-8 {
+      @apply mx-8;
+    }
+    
+    /* Desktop-specific health components */
+    .desktop-vital-signs {
+      @apply grid-cols-3 gap-6;
+    }
+    
+    .desktop-device-grid {
+      @apply grid-cols-4 gap-6;
+    }
+    
+    .desktop-dashboard {
+      @apply grid-cols-4 gap-8;
+    }
+    
+    .desktop-nav {
+      @apply flex-row space-x-8;
+    }
+    
+    .desktop-video-call {
+      @apply aspect-video;
+    }
+    
+    .desktop-chat {
+      @apply h-full;
+    }
+  }
+  
+  /* Large desktop responsive utilities */
+  @media (min-width: 1536px) {
+    .xl-grid {
+      @apply grid-cols-4 gap-8;
+    }
+    
+    .xl-grid-5 {
+      @apply grid-cols-5 gap-8;
+    }
+    
+    .xl-grid-6 {
+      @apply grid-cols-6 gap-8;
+    }
+    
+    .xl-p-12 {
+      @apply p-12;
+    }
+    
+    .xl-mx-12 {
+      @apply mx-12;
+    }
+    
+    /* XL-specific health components */
+    .xl-vital-signs {
+      @apply grid-cols-4 gap-8;
+    }
+    
+    .xl-device-grid {
+      @apply grid-cols-5 gap-8;
+    }
+    
+    .xl-dashboard {
+      @apply grid-cols-5 gap-10;
+    }
+  }
+  
+  /* Container responsive utilities */
+  .container-responsive {
+    @apply w-full mx-auto px-4;
+  }
+  
+  @media (min-width: 640px) {
+    .container-responsive {
+      @apply max-w-screen-sm px-6;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .container-responsive {
+      @apply max-w-screen-md px-8;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      @apply max-w-screen-lg px-10;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container-responsive {
+      @apply max-w-screen-xl px-12;
+    }
+  }
+  
+  @media (min-width: 1536px) {
+    .container-responsive {
+      @apply max-w-screen-2xl px-16;
+    }
+  }
+  
+  /* Health-specific responsive layouts */
+  .health-layout-mobile {
+    @apply flex flex-col space-y-4;
+  }
+  
+  @media (min-width: 768px) {
+    .health-layout-mobile {
+      @apply flex-row space-y-0 space-x-6;
+    }
+  }
+  
+  .health-sidebar {
+    @apply w-full;
+  }
+  
+  @media (min-width: 768px) {
+    .health-sidebar {
+      @apply w-64 flex-shrink-0;
+    }
+  }
+  
+  .health-main-content {
+    @apply flex-1 min-w-0;
+  }
+  
+  /* Responsive text utilities */
+  .text-responsive-xs {
+    @apply text-xs;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-xs {
+      @apply text-sm;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-xs {
+      @apply text-base;
+    }
+  }
+  
+  .text-responsive-sm {
+    @apply text-sm;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-sm {
+      @apply text-base;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-sm {
+      @apply text-lg;
+    }
+  }
+  
+  .text-responsive-base {
+    @apply text-base;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-base {
+      @apply text-lg;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-base {
+      @apply text-xl;
+    }
+  }
+  
+  .text-responsive-lg {
+    @apply text-lg;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-lg {
+      @apply text-xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-lg {
+      @apply text-2xl;
+    }
+  }
+  
+  .text-responsive-xl {
+    @apply text-xl;
+  }
+  
+  @media (min-width: 640px) {
+    .text-responsive-xl {
+      @apply text-2xl;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .text-responsive-xl {
+      @apply text-3xl;
+    }
+  }
+  
+  /* Responsive spacing utilities */
+  .space-responsive-y {
+    @apply space-y-4;
+  }
+  
+  @media (min-width: 768px) {
+    .space-responsive-y {
+      @apply space-y-6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .space-responsive-y {
+      @apply space-y-8;
+    }
+  }
+  
+  .space-responsive-x {
+    @apply space-x-4;
+  }
+  
+  @media (min-width: 768px) {
+    .space-responsive-x {
+      @apply space-x-6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .space-responsive-x {
+      @apply space-x-8;
+    }
+  }
+  
+  /* Responsive padding utilities */
+  .p-responsive {
+    @apply p-4;
+  }
+  
+  @media (min-width: 640px) {
+    .p-responsive {
+      @apply p-6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .p-responsive {
+      @apply p-8;
+    }
+  }
+  
+  /* Responsive margin utilities */
+  .m-responsive {
+    @apply m-4;
+  }
+  
+  @media (min-width: 640px) {
+    .m-responsive {
+      @apply m-6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .m-responsive {
+      @apply m-8;
+    }
+  }
+  
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .print-break {
+      page-break-before: always;
+    }
+    
+    .print-avoid-break {
+      page-break-inside: avoid;
+    }
+    
+    .print-full-width {
+      width: 100% !important;
+    }
+    
+    .print-hide-background {
+      background: none !important;
+      box-shadow: none !important;
+    }
+    
+    body {
+      background: white !important;
+      color: black !important;
+      font-size: 12pt;
+      line-height: 1.4;
+    }
+    
+    .health-card {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+      margin-bottom: 1rem;
+    }
+    
+    .health-chart-container {
+      border: 1px solid #000 !important;
+      box-shadow: none !important;
+    }
+    
+    .video-call-container,
+    .chat-container,
+    .ai-assistant-container {
+      display: none !important;
+    }
+  }
+  
+  /* Accessibility responsive utilities */
+  @media (prefers-reduced-motion: reduce) {
+    .motion-reduce-disable {
+      animation: none !important;
+      transition: none !important;
+    }
+    
+    .motion-reduce-slow {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  @media (prefers-contrast: high) {
+    .high-contrast-border {
+      border-width: 2px !important;
+      border-color: #000 !important;
+    }
+    
+    .high-contrast-text {
+      color: #000 !important;
+    }
+    
+    .high-contrast-bg {
+      background-color: #fff !important;
+    }
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .dark-mode-invert {
+      filter: invert(1);
+    }
+    
+    .dark-mode-bg {
+      background-color: #1f2937 !important;
+    }
+    
+    .dark-mode-text {
+      color: #f9fafb !important;
+    }
+    
+    .dark-mode-border {
+      border-color: #374151 !important;
+    }
+  }
+  
+  /* Orientation responsive utilities */
+  @media (orientation: portrait) {
+    .portrait-stack {
+      @apply flex-col;
+    }
+    
+    .portrait-full-height {
+      @apply h-screen;
+    }
+  }
+  
+  @media (orientation: landscape) {
+    .landscape-flex {
+      @apply flex-row;
+    }
+    
+    .landscape-sidebar {
+      @apply w-64;
+    }
+  }
+  
+  /* Touch device utilities */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-larger {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .touch-spacing {
+      margin: 8px;
+    }
+  }
+  
+  /* High DPI display utilities */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .high-dpi-crisp {
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+  }
+  

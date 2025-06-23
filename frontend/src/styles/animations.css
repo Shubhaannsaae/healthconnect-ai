@@ -1,0 +1,458 @@
+/* animations.css - Custom animations for HealthConnect AI */
+
+/* Basic animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  @keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+  
+  @keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  
+  @keyframes slideInUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  
+  @keyframes slideInDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+  
+  @keyframes slideOutLeft {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+  
+  @keyframes slideOutRight {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+  }
+  
+  @keyframes slideOutUp {
+    from { transform: translateY(0); }
+    to { transform: translateY(-100%); }
+  }
+  
+  @keyframes slideOutDown {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+  }
+  
+  /* Health-specific animations */
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    14% { transform: scale(1.3); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.3); }
+    70% { transform: scale(1); }
+  }
+  
+  @keyframes breathing {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  
+  @keyframes pulse-health {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  @keyframes emergency-pulse {
+    0%, 100% { 
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% { 
+      transform: scale(1.05);
+      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+  }
+  
+  @keyframes data-flow {
+    0% { 
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    50% { 
+      opacity: 1;
+    }
+    100% { 
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes vital-sign-update {
+    0% { 
+      transform: scale(1);
+      background-color: transparent;
+    }
+    50% { 
+      transform: scale(1.1);
+      background-color: rgba(34, 197, 94, 0.2);
+    }
+    100% { 
+      transform: scale(1);
+      background-color: transparent;
+    }
+  }
+  
+  @keyframes device-connect {
+    0% { 
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    50% { 
+      transform: scale(1.1);
+    }
+    100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes notification-slide {
+    0% { 
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    100% { 
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes loading-dots {
+    0%, 80%, 100% { 
+      transform: scale(0);
+      opacity: 0.5;
+    }
+    40% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes progress-bar {
+    0% { width: 0%; }
+    100% { width: 100%; }
+  }
+  
+  @keyframes skeleton-loading {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+  }
+  
+  @keyframes chart-draw {
+    0% { stroke-dashoffset: 1000; }
+    100% { stroke-dashoffset: 0; }
+  }
+  
+  @keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+  }
+  
+  @keyframes glow-green {
+    0% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+  }
+  
+  @keyframes glow-red {
+    0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.8); }
+  }
+  
+  @keyframes glow-yellow {
+    0% { box-shadow: 0 0 5px rgba(245, 158, 11, 0.5); }
+    100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.8); }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+  }
+  
+  @keyframes bounce-in {
+    0% { 
+      transform: scale(0.3);
+      opacity: 0;
+    }
+    50% { 
+      transform: scale(1.05);
+    }
+    70% { 
+      transform: scale(0.9);
+    }
+    100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes zoom-in {
+    0% { 
+      transform: scale(0);
+      opacity: 0;
+    }
+    100% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes zoom-out {
+    0% { 
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% { 
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  
+  /* Animation utility classes */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-fade-out {
+    animation: fadeOut 0.5s ease-in-out;
+  }
+  
+  .animate-slide-in-left {
+    animation: slideInLeft 0.3s ease-out;
+  }
+  
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
+  
+  .animate-slide-in-up {
+    animation: slideInUp 0.3s ease-out;
+  }
+  
+  .animate-slide-in-down {
+    animation: slideInDown 0.3s ease-out;
+  }
+  
+  .animate-heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
+  }
+  
+  .animate-breathing {
+    animation: breathing 4s ease-in-out infinite;
+  }
+  
+  .animate-pulse-health {
+    animation: pulse-health 2s ease-in-out infinite;
+  }
+  
+  .animate-emergency-pulse {
+    animation: emergency-pulse 1s ease-in-out infinite;
+  }
+  
+  .animate-data-flow {
+    animation: data-flow 3s ease-in-out infinite;
+  }
+  
+  .animate-vital-sign-update {
+    animation: vital-sign-update 1s ease-in-out;
+  }
+  
+  .animate-device-connect {
+    animation: device-connect 0.5s ease-out;
+  }
+  
+  .animate-notification-slide {
+    animation: notification-slide 0.3s ease-out;
+  }
+  
+  .animate-loading-dots {
+    animation: loading-dots 1.4s ease-in-out infinite;
+  }
+  
+  .animate-progress-bar {
+    animation: progress-bar 2s ease-in-out;
+  }
+  
+  .animate-skeleton-loading {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s infinite;
+  }
+  
+  .animate-chart-draw {
+    animation: chart-draw 2s ease-in-out;
+  }
+  
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-glow-green {
+    animation: glow-green 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-glow-red {
+    animation: glow-red 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-glow-yellow {
+    animation: glow-yellow 2s ease-in-out infinite alternate;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-rotate {
+    animation: rotate 2s linear infinite;
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  
+  .animate-bounce-in {
+    animation: bounce-in 0.6s ease-out;
+  }
+  
+  .animate-zoom-in {
+    animation: zoom-in 0.3s ease-out;
+  }
+  
+  .animate-zoom-out {
+    animation: zoom-out 0.3s ease-in;
+  }
+  
+  /* Delayed animations */
+  .animate-delay-75 {
+    animation-delay: 75ms;
+  }
+  
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animate-delay-150 {
+    animation-delay: 150ms;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+  
+  .animate-delay-700 {
+    animation-delay: 700ms;
+  }
+  
+  .animate-delay-1000 {
+    animation-delay: 1000ms;
+  }
+  
+  /* Animation duration utilities */
+  .animate-duration-75 {
+    animation-duration: 75ms;
+  }
+  
+  .animate-duration-100 {
+    animation-duration: 100ms;
+  }
+  
+  .animate-duration-150 {
+    animation-duration: 150ms;
+  }
+  
+  .animate-duration-200 {
+    animation-duration: 200ms;
+  }
+  
+  .animate-duration-300 {
+    animation-duration: 300ms;
+  }
+  
+  .animate-duration-500 {
+    animation-duration: 500ms;
+  }
+  
+  .animate-duration-700 {
+    animation-duration: 700ms;
+  }
+  
+  .animate-duration-1000 {
+    animation-duration: 1000ms;
+  }
+  
+  /* Animation iteration utilities */
+  .animate-once {
+    animation-iteration-count: 1;
+  }
+  
+  .animate-twice {
+    animation-iteration-count: 2;
+  }
+  
+  .animate-infinite {
+    animation-iteration-count: infinite;
+  }
+  
+  /* Animation fill mode utilities */
+  .animate-fill-none {
+    animation-fill-mode: none;
+  }
+  
+  .animate-fill-forwards {
+    animation-fill-mode: forwards;
+  }
+  
+  .animate-fill-backwards {
+    animation-fill-mode: backwards;
+  }
+  
+  .animate-fill-both {
+    animation-fill-mode: both;
+  }
+  
+  /* Animation play state utilities */
+  .animate-paused {
+    animation-play-state: paused;
+  }
+  
+  .animate-running {
+    animation-play-state: running;
+  }
+  
