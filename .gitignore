@@ -1,0 +1,138 @@
+# Node.js
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+frontend/node_modules/
+backend/venv/
+backend/__pycache__/
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.sqlite3
+
+# AWS
+.aws-sam/
+.aws/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Docker
+**/docker-compose.override.yml
+**/Dockerfile
+
+# VSCode
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Coverage
+coverage/
+
+# Build
+build/
+
+# Misc
+*.swp
+*.swo
+
+# Serverless Framework
+.serverless/
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Logs
+*.log
+
+# Python virtual environment
+venv/
+
+# AWS credentials
+*.pem
+
+# Ignore secrets
+secrets.json
+
+# Ignore generated files
+*.zip
+
+# Ignore IDE files
+.idea/
+
+# Ignore test reports
+reports/
+
+# Ignore coverage reports
+coverage/
+
+# Ignore temporary files
+*.tmp
+
+# Ignore system files
+Thumbs.db
+
+# Ignore build artifacts
+dist/
+
+# Ignore npm debug files
+npm-debug.log*
+
+# Ignore yarn debug files
+yarn-debug.log*
+
+# Ignore lock files
+package-lock.json
+yarn.lock
+
+# Ignore Python egg files
+*.egg-info/
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore Python bytecode
+*.pyc
+
+# Ignore Python virtualenv
+.env/
+
+# Ignore AWS SAM build
+.aws-sam/
+
+# Ignore serverless build
+.serverless/
+
+# Ignore coverage
+coverage/
+
+# Ignore logs
+logs/
+
+# Ignore local config
+local.config.json
+
+# Ignore secrets
+secrets.json
