@@ -1,0 +1,33 @@
+[
+    {
+      "patient_id": "PAT-001",
+      "name": "John Doe",
+      "age": 45,
+      "gender": "male",
+      "date_of_birth": "1980-04-15",
+      "conditions": ["hypertension", "type 2 diabetes"],
+      "medications": ["lisinopril", "metformin"],
+      "allergies": ["penicillin"],
+      "emergency_contacts": [
+        {
+          "name": "Jane Doe",
+          "relationship": "spouse",
+          "phone": "+1234567890"
+        }
+      ],
+      "primary_care_provider": "PROV-001",
+      "last_visit": "2025-06-01T10:00:00Z",
+      "insurance": {
+        "provider": "HealthPlus",
+        "policy_number": "HP-123456789",
+        "valid_until": "2026-06-01"
+      },
+      "address": {
+        "street": "123 Main St",
+        "city": "Metropolis",
+        "state": "CA",
+        "zip": "90001"
+      }
+    }
+  ]
+  

@@ -1,0 +1,320 @@
+{
+    "conditions": [
+      {
+        "id": "cond-001",
+        "name": "Essential Hypertension",
+        "icd10_code": "I10",
+        "icd11_code": "BA00",
+        "description": "Essential (primary) hypertension - high blood pressure with no identifiable cause",
+        "category": "chronic",
+        "severity": "moderate",
+        "prevalence": 0.45,
+        "risk_factors": [
+          "age_over_65",
+          "obesity",
+          "sedentary_lifestyle",
+          "high_sodium_diet",
+          "smoking",
+          "excessive_alcohol",
+          "family_history"
+        ],
+        "symptoms": [
+          "headaches",
+          "shortness_of_breath",
+          "nosebleeds",
+          "chest_pain",
+          "visual_changes"
+        ],
+        "complications": [
+          "heart_attack",
+          "stroke",
+          "kidney_disease",
+          "heart_failure",
+          "vision_loss"
+        ],
+        "monitoring_parameters": [
+          "blood_pressure",
+          "heart_rate",
+          "kidney_function",
+          "cholesterol_levels"
+        ],
+        "target_ranges": {
+          "systolic_bp": "< 130 mmHg",
+          "diastolic_bp": "< 80 mmHg",
+          "heart_rate": "60-100 bpm"
+        },
+        "treatment_guidelines": {
+          "lifestyle": [
+            "DASH diet",
+            "regular exercise",
+            "weight management",
+            "sodium restriction",
+            "stress management"
+          ],
+          "medications": [
+            "ACE inhibitors",
+            "ARBs",
+            "calcium channel blockers",
+            "diuretics",
+            "beta blockers"
+          ]
+        }
+      },
+      {
+        "id": "cond-002",
+        "name": "Type 2 Diabetes Mellitus",
+        "icd10_code": "E11",
+        "icd11_code": "5A11",
+        "description": "Type 2 diabetes mellitus - a chronic condition affecting glucose metabolism",
+        "category": "chronic",
+        "severity": "moderate_to_severe",
+        "prevalence": 0.11,
+        "risk_factors": [
+          "obesity",
+          "sedentary_lifestyle",
+          "family_history",
+          "age_over_45",
+          "gestational_diabetes_history",
+          "polycystic_ovary_syndrome",
+          "high_blood_pressure"
+        ],
+        "symptoms": [
+          "increased_thirst",
+          "frequent_urination",
+          "increased_hunger",
+          "fatigue",
+          "blurred_vision",
+          "slow_healing_wounds"
+        ],
+        "complications": [
+          "diabetic_retinopathy",
+          "diabetic_nephropathy",
+          "diabetic_neuropathy",
+          "cardiovascular_disease",
+          "stroke",
+          "foot_ulcers"
+        ],
+        "monitoring_parameters": [
+          "blood_glucose",
+          "hba1c",
+          "blood_pressure",
+          "cholesterol",
+          "kidney_function",
+          "eye_exams"
+        ],
+        "target_ranges": {
+          "fasting_glucose": "80-130 mg/dL",
+          "post_meal_glucose": "< 180 mg/dL",
+          "hba1c": "< 7%",
+          "blood_pressure": "< 140/90 mmHg"
+        },
+        "treatment_guidelines": {
+          "lifestyle": [
+            "carbohydrate counting",
+            "regular exercise",
+            "weight management",
+            "blood glucose monitoring",
+            "foot care"
+          ],
+          "medications": [
+            "metformin",
+            "sulfonylureas",
+            "DPP-4 inhibitors",
+            "GLP-1 agonists",
+            "insulin"
+          ]
+        }
+      },
+      {
+        "id": "cond-003",
+        "name": "Bronchial Asthma",
+        "icd10_code": "J45",
+        "icd11_code": "CA23",
+        "description": "Asthma - a chronic inflammatory disease of the airways",
+        "category": "chronic",
+        "severity": "mild_to_severe",
+        "prevalence": 0.08,
+        "risk_factors": [
+          "allergies",
+          "family_history",
+          "respiratory_infections",
+          "environmental_triggers",
+          "smoking",
+          "occupational_exposures"
+        ],
+        "symptoms": [
+          "wheezing",
+          "shortness_of_breath",
+          "chest_tightness",
+          "coughing",
+          "difficulty_sleeping"
+        ],
+        "complications": [
+          "status_asthmaticus",
+          "respiratory_failure",
+          "pneumonia",
+          "atelectasis",
+          "pneumothorax"
+        ],
+        "monitoring_parameters": [
+          "peak_flow",
+          "respiratory_rate",
+          "oxygen_saturation",
+          "symptom_frequency",
+          "medication_usage"
+        ],
+        "target_ranges": {
+          "peak_flow": "> 80% predicted",
+          "oxygen_saturation": "> 95%",
+          "respiratory_rate": "12-20 breaths/min"
+        },
+        "treatment_guidelines": {
+          "lifestyle": [
+            "trigger_avoidance",
+            "regular_exercise",
+            "proper_inhaler_technique",
+            "action_plan_adherence"
+          ],
+          "medications": [
+            "short_acting_beta_agonists",
+            "inhaled_corticosteroids",
+            "long_acting_beta_agonists",
+            "leukotriene_modifiers",
+            "biologics"
+          ]
+        }
+      },
+      {
+        "id": "cond-004",
+        "name": "Chronic Kidney Disease",
+        "icd10_code": "N18",
+        "icd11_code": "GB61",
+        "description": "Chronic kidney disease - progressive loss of kidney function over time",
+        "category": "chronic",
+        "severity": "moderate_to_severe",
+        "prevalence": 0.15,
+        "risk_factors": [
+          "diabetes",
+          "hypertension",
+          "family_history",
+          "age_over_60",
+          "cardiovascular_disease",
+          "obesity",
+          "smoking"
+        ],
+        "symptoms": [
+          "fatigue",
+          "swelling",
+          "shortness_of_breath",
+          "nausea",
+          "decreased_appetite",
+          "sleep_problems"
+        ],
+        "complications": [
+          "end_stage_renal_disease",
+          "cardiovascular_disease",
+          "bone_disease",
+          "anemia",
+          "electrolyte_imbalances"
+        ],
+        "monitoring_parameters": [
+          "serum_creatinine",
+          "estimated_gfr",
+          "proteinuria",
+          "blood_pressure",
+          "hemoglobin",
+          "bone_markers"
+        ],
+        "target_ranges": {
+          "blood_pressure": "< 130/80 mmHg",
+          "proteinuria": "< 30 mg/g creatinine",
+          "hemoglobin": "11-12 g/dL"
+        },
+        "treatment_guidelines": {
+          "lifestyle": [
+            "protein_restriction",
+            "sodium_restriction",
+            "phosphorus_restriction",
+            "regular_exercise",
+            "smoking_cessation"
+          ],
+          "medications": [
+            "ACE_inhibitors",
+            "ARBs",
+            "phosphate_binders",
+            "erythropoiesis_stimulating_agents",
+            "vitamin_d_analogs"
+          ]
+        }
+      },
+      {
+        "id": "cond-005",
+        "name": "Chronic Obstructive Pulmonary Disease",
+        "icd10_code": "J44",
+        "icd11_code": "CA22",
+        "description": "COPD - a progressive lung disease characterized by airflow limitation",
+        "category": "chronic",
+        "severity": "moderate_to_severe",
+        "prevalence": 0.06,
+        "risk_factors": [
+          "smoking",
+          "secondhand_smoke",
+          "air_pollution",
+          "occupational_exposures",
+          "alpha1_antitrypsin_deficiency",
+          "respiratory_infections"
+        ],
+        "symptoms": [
+          "chronic_cough",
+          "sputum_production",
+          "shortness_of_breath",
+          "wheezing",
+          "chest_tightness"
+        ],
+        "complications": [
+          "respiratory_failure",
+          "cor_pulmonale",
+          "pneumonia",
+          "pneumothorax",
+          "depression"
+        ],
+        "monitoring_parameters": [
+          "spirometry",
+          "oxygen_saturation",
+          "respiratory_rate",
+          "exercise_tolerance",
+          "exacerbation_frequency"
+        ],
+        "target_ranges": {
+          "oxygen_saturation": "88-92%",
+          "respiratory_rate": "12-20 breaths/min",
+          "fev1": "> 50% predicted"
+        },
+        "treatment_guidelines": {
+          "lifestyle": [
+            "smoking_cessation",
+            "pulmonary_rehabilitation",
+            "vaccination",
+            "exercise_training",
+            "nutritional_support"
+          ],
+          "medications": [
+            "bronchodilators",
+            "inhaled_corticosteroids",
+            "phosphodiesterase_inhibitors",
+            "oxygen_therapy",
+            "mucolytics"
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "version": "2.1.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "WHO ICD-11, ADA Guidelines, AHA/ACC Guidelines",
+      "total_conditions": 5,
+      "categories": ["chronic"],
+      "validation_status": "verified"
+    }
+  }
+  

@@ -1,0 +1,224 @@
+{
+    "device_profile": {
+      "id": "dev-profile-hrm-001",
+      "device_type": "heart_rate_monitor",
+      "name": "Heart Rate Monitor",
+      "description": "Continuous heart rate monitoring device with ECG capabilities",
+      "category": "cardiovascular",
+      "regulatory_info": {
+        "fda_class": "Class II",
+        "fda_510k": "K123456789",
+        "ce_marking": "CE-MD-2023-001",
+        "iso_standards": ["ISO 14155", "ISO 27001", "ISO 13485"],
+        "hipaa_compliant": true
+      },
+      "technical_specifications": {
+        "measurement_range": {
+          "heart_rate": {
+            "min": 30,
+            "max": 250,
+            "unit": "bpm",
+            "accuracy": "±2 bpm or ±2%"
+          },
+          "heart_rate_variability": {
+            "min": 0,
+            "max": 200,
+            "unit": "ms",
+            "accuracy": "±5 ms"
+          }
+        },
+        "sampling_rate": {
+          "default": 250,
+          "maximum": 1000,
+          "unit": "Hz"
+        },
+        "resolution": {
+          "heart_rate": 1,
+          "hrv": 1,
+          "unit": "bpm"
+        },
+        "response_time": "< 5 seconds",
+        "operating_temperature": {
+          "min": 5,
+          "max": 40,
+          "unit": "°C"
+        },
+        "storage_temperature": {
+          "min": -20,
+          "max": 60,
+          "unit": "°C"
+        },
+        "humidity_range": {
+          "min": 15,
+          "max": 93,
+          "unit": "%RH"
+        }
+      },
+      "connectivity": {
+        "protocols": ["Bluetooth 5.0", "WiFi 802.11n", "USB-C"],
+        "range": {
+          "bluetooth": "10 meters",
+          "wifi": "50 meters"
+        },
+        "data_transmission": {
+          "real_time": true,
+          "batch_mode": true,
+          "encryption": "AES-256"
+        },
+        "cloud_integration": {
+          "aws_iot": true,
+          "azure_iot": true,
+          "google_cloud": false
+        }
+      },
+      "power_management": {
+        "battery_type": "Lithium-ion rechargeable",
+        "battery_capacity": "300 mAh",
+        "battery_life": {
+          "continuous_monitoring": "48 hours",
+          "standby": "7 days"
+        },
+        "charging": {
+          "method": "USB-C",
+          "time_to_full": "2 hours",
+          "fast_charging": true
+        },
+        "power_consumption": {
+          "active": "15 mA",
+          "sleep": "0.5 mA"
+        }
+      },
+      "data_parameters": [
+        {
+          "parameter": "heart_rate",
+          "display_name": "Heart Rate",
+          "unit": "bpm",
+          "data_type": "integer",
+          "normal_range": {
+            "adult_rest": {"min": 60, "max": 100},
+            "adult_exercise": {"min": 100, "max": 180},
+            "elderly": {"min": 50, "max": 90}
+          },
+          "alert_thresholds": {
+            "low_critical": 40,
+            "low_warning": 50,
+            "high_warning": 120,
+            "high_critical": 150
+          },
+          "measurement_frequency": "continuous"
+        },
+        {
+          "parameter": "heart_rate_variability",
+          "display_name": "Heart Rate Variability",
+          "unit": "ms",
+          "data_type": "float",
+          "normal_range": {
+            "adult": {"min": 20, "max": 50}
+          },
+          "alert_thresholds": {
+            "low_warning": 15,
+            "high_warning": 60
+          },
+          "measurement_frequency": "every_5_minutes"
+        },
+        {
+          "parameter": "rhythm_analysis",
+          "display_name": "Rhythm Analysis",
+          "unit": "categorical",
+          "data_type": "string",
+          "possible_values": ["normal", "irregular", "atrial_fibrillation", "premature_beats"],
+          "alert_conditions": ["atrial_fibrillation", "severe_irregularity"],
+          "measurement_frequency": "continuous"
+        }
+      ],
+      "calibration": {
+        "required": true,
+        "frequency": "monthly",
+        "method": "automatic_self_calibration",
+        "reference_standard": "ECG_validated",
+        "calibration_points": [
+          {"heart_rate": 60, "reference": 60},
+          {"heart_rate": 100, "reference": 100},
+          {"heart_rate": 150, "reference": 150}
+        ]
+      },
+      "alerts_and_notifications": {
+        "supported_alert_types": [
+          "threshold_exceeded",
+          "device_malfunction",
+          "low_battery",
+          "connection_lost",
+          "irregular_rhythm",
+          "data_quality_poor"
+        ],
+        "notification_methods": ["app_push", "email", "sms", "device_vibration"],
+        "escalation_rules": {
+          "critical_alerts": {
+            "immediate": ["app_push", "device_vibration"],
+            "after_5_minutes": ["sms"],
+            "after_15_minutes": ["emergency_contact"]
+          }
+        }
+      },
+      "data_storage": {
+        "local_storage": {
+          "capacity": "30 days",
+          "format": "compressed_binary"
+        },
+        "cloud_storage": {
+          "retention_period": "7 years",
+          "backup_frequency": "real_time",
+          "encryption": "end_to_end"
+        }
+      },
+      "user_interface": {
+        "display": {
+          "type": "OLED",
+          "size": "1.3 inches",
+          "resolution": "240x240",
+          "color": true
+        },
+        "controls": {
+          "buttons": 2,
+          "touch_screen": true,
+          "voice_commands": false
+        },
+        "mobile_app": {
+          "platforms": ["iOS", "Android"],
+          "features": ["real_time_monitoring", "historical_data", "alerts", "sharing"]
+        }
+      },
+      "maintenance": {
+        "cleaning_instructions": "Wipe with alcohol-based sanitizer",
+        "replacement_parts": ["chest_strap", "electrodes", "battery"],
+        "firmware_updates": {
+          "method": "over_the_air",
+          "frequency": "quarterly",
+          "auto_update": true
+        },
+        "warranty": "2 years",
+        "expected_lifespan": "5 years"
+      },
+      "integration_apis": {
+        "rest_api": {
+          "base_url": "https://api.healthconnect.com/v1/devices/hrm",
+          "authentication": "OAuth 2.0",
+          "rate_limits": "1000 requests/hour"
+        },
+        "webhooks": {
+          "supported_events": ["data_received", "alert_triggered", "device_status_changed"],
+          "payload_format": "JSON",
+          "retry_policy": "exponential_backoff"
+        },
+        "sdk_support": ["JavaScript", "Python", "Java", "Swift", "Kotlin"]
+      }
+    },
+    "metadata": {
+      "version": "2.1.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "created_by": "HealthConnect AI Device Team",
+      "validation_status": "certified",
+      "compliance_verified": true
+    }
+  }
+  

@@ -1,0 +1,394 @@
+{
+    "medications": [
+      {
+        "id": "med-001",
+        "name": "Lisinopril",
+        "generic_name": "lisinopril",
+        "brand_names": ["Prinivil", "Zestril"],
+        "drug_class": "ACE Inhibitor",
+        "therapeutic_class": "Antihypertensive",
+        "mechanism_of_action": "Inhibits angiotensin-converting enzyme, reducing angiotensin II formation",
+        "indications": [
+          "Hypertension",
+          "Heart Failure",
+          "Post-MI Left Ventricular Dysfunction",
+          "Diabetic Nephropathy"
+        ],
+        "contraindications": [
+          "Hypersensitivity to ACE inhibitors",
+          "Angioedema history",
+          "Pregnancy",
+          "Bilateral renal artery stenosis"
+        ],
+        "dosage_forms": [
+          {
+            "form": "tablet",
+            "strengths": ["2.5 mg", "5 mg", "10 mg", "20 mg", "30 mg", "40 mg"],
+            "route": "oral"
+          }
+        ],
+        "dosing": {
+          "hypertension": {
+            "initial": "10 mg once daily",
+            "maintenance": "20-40 mg once daily",
+            "maximum": "80 mg once daily"
+          },
+          "heart_failure": {
+            "initial": "2.5-5 mg once daily",
+            "maintenance": "20-35 mg once daily",
+            "maximum": "35 mg once daily"
+          }
+        },
+        "side_effects": {
+          "common": ["dry cough", "dizziness", "headache", "fatigue"],
+          "serious": ["angioedema", "hyperkalemia", "renal impairment", "hypotension"],
+          "rare": ["hepatotoxicity", "neutropenia", "Stevens-Johnson syndrome"]
+        },
+        "drug_interactions": [
+          {
+            "drug": "potassium supplements",
+            "severity": "major",
+            "effect": "increased risk of hyperkalemia"
+          },
+          {
+            "drug": "NSAIDs",
+            "severity": "moderate",
+            "effect": "reduced antihypertensive effect, increased nephrotoxicity"
+          },
+          {
+            "drug": "lithium",
+            "severity": "moderate",
+            "effect": "increased lithium levels"
+          }
+        ],
+        "monitoring": [
+          "blood pressure",
+          "serum creatinine",
+          "potassium levels",
+          "BUN"
+        ],
+        "pregnancy_category": "D",
+        "lactation": "compatible"
+      },
+      {
+        "id": "med-002",
+        "name": "Metformin",
+        "generic_name": "metformin hydrochloride",
+        "brand_names": ["Glucophage", "Fortamet", "Glumetza"],
+        "drug_class": "Biguanide",
+        "therapeutic_class": "Antidiabetic",
+        "mechanism_of_action": "Decreases hepatic glucose production, increases insulin sensitivity",
+        "indications": [
+          "Type 2 Diabetes Mellitus",
+          "Polycystic Ovary Syndrome",
+          "Prediabetes"
+        ],
+        "contraindications": [
+          "Severe renal impairment (eGFR < 30)",
+          "Metabolic acidosis",
+          "Diabetic ketoacidosis",
+          "Severe hepatic impairment"
+        ],
+        "dosage_forms": [
+          {
+            "form": "tablet",
+            "strengths": ["500 mg", "850 mg", "1000 mg"],
+            "route": "oral"
+          },
+          {
+            "form": "extended_release_tablet",
+            "strengths": ["500 mg", "750 mg", "1000 mg"],
+            "route": "oral"
+          }
+        ],
+        "dosing": {
+          "type_2_diabetes": {
+            "initial": "500 mg twice daily or 850 mg once daily",
+            "maintenance": "1000 mg twice daily",
+            "maximum": "2550 mg daily"
+          }
+        },
+        "side_effects": {
+          "common": ["nausea", "diarrhea", "abdominal pain", "metallic taste"],
+          "serious": ["lactic acidosis", "vitamin B12 deficiency"],
+          "rare": ["megaloblastic anemia", "hepatotoxicity"]
+        },
+        "drug_interactions": [
+          {
+            "drug": "contrast agents",
+            "severity": "major",
+            "effect": "increased risk of lactic acidosis"
+          },
+          {
+            "drug": "alcohol",
+            "severity": "moderate",
+            "effect": "increased risk of lactic acidosis"
+          },
+          {
+            "drug": "cimetidine",
+            "severity": "moderate",
+            "effect": "increased metformin levels"
+          }
+        ],
+        "monitoring": [
+          "blood glucose",
+          "HbA1c",
+          "renal function",
+          "vitamin B12 levels"
+        ],
+        "pregnancy_category": "B",
+        "lactation": "compatible"
+      },
+      {
+        "id": "med-003",
+        "name": "Albuterol",
+        "generic_name": "albuterol sulfate",
+        "brand_names": ["ProAir", "Ventolin", "Proventil"],
+        "drug_class": "Short-Acting Beta-2 Agonist",
+        "therapeutic_class": "Bronchodilator",
+        "mechanism_of_action": "Selective beta-2 adrenergic receptor agonist causing bronchodilation",
+        "indications": [
+          "Asthma",
+          "COPD",
+          "Exercise-Induced Bronchospasm",
+          "Acute Bronchospasm"
+        ],
+        "contraindications": [
+          "Hypersensitivity to albuterol",
+          "Tachyarrhythmias"
+        ],
+        "dosage_forms": [
+          {
+            "form": "metered_dose_inhaler",
+            "strengths": ["90 mcg per actuation"],
+            "route": "inhalation"
+          },
+          {
+            "form": "nebulizer_solution",
+            "strengths": ["0.083%", "0.5%"],
+            "route": "inhalation"
+          },
+          {
+            "form": "tablet",
+            "strengths": ["2 mg", "4 mg"],
+            "route": "oral"
+          }
+        ],
+        "dosing": {
+          "acute_bronchospasm": {
+            "mdi": "2 puffs every 4-6 hours as needed",
+            "nebulizer": "2.5 mg every 6-8 hours as needed"
+          },
+          "exercise_induced": {
+            "mdi": "2 puffs 15-30 minutes before exercise"
+          }
+        },
+        "side_effects": {
+          "common": ["tremor", "nervousness", "headache", "tachycardia"],
+          "serious": ["paradoxical bronchospasm", "hypokalemia", "hyperglycemia"],
+          "rare": ["angioedema", "urticaria", "cardiac arrhythmias"]
+        },
+        "drug_interactions": [
+          {
+            "drug": "beta blockers",
+            "severity": "major",
+            "effect": "antagonistic effects"
+          },
+          {
+            "drug": "MAO inhibitors",
+            "severity": "moderate",
+            "effect": "increased cardiovascular effects"
+          },
+          {
+            "drug": "digoxin",
+            "severity": "moderate",
+            "effect": "decreased digoxin levels"
+          }
+        ],
+        "monitoring": [
+          "heart rate",
+          "blood pressure",
+          "respiratory rate",
+          "peak flow"
+        ],
+        "pregnancy_category": "C",
+        "lactation": "compatible"
+      },
+      {
+        "id": "med-004",
+        "name": "Atorvastatin",
+        "generic_name": "atorvastatin calcium",
+        "brand_names": ["Lipitor"],
+        "drug_class": "HMG-CoA Reductase Inhibitor",
+        "therapeutic_class": "Antilipemic",
+        "mechanism_of_action": "Inhibits HMG-CoA reductase, reducing cholesterol synthesis",
+        "indications": [
+          "Hypercholesterolemia",
+          "Mixed Dyslipidemia",
+          "Primary Prevention of CVD",
+          "Secondary Prevention of CVD"
+        ],
+        "contraindications": [
+          "Active liver disease",
+          "Pregnancy",
+          "Lactation",
+          "Hypersensitivity to statins"
+        ],
+        "dosage_forms": [
+          {
+            "form": "tablet",
+            "strengths": ["10 mg", "20 mg", "40 mg", "80 mg"],
+            "route": "oral"
+          }
+        ],
+        "dosing": {
+          "hypercholesterolemia": {
+            "initial": "10-20 mg once daily",
+            "maintenance": "10-80 mg once daily",
+            "maximum": "80 mg once daily"
+          }
+        },
+        "side_effects": {
+          "common": ["headache", "myalgia", "diarrhea", "nasopharyngitis"],
+          "serious": ["rhabdomyolysis", "hepatotoxicity", "diabetes mellitus"],
+          "rare": ["immune-mediated necrotizing myopathy", "cognitive impairment"]
+        },
+        "drug_interactions": [
+          {
+            "drug": "cyclosporine",
+            "severity": "major",
+            "effect": "increased atorvastatin levels"
+          },
+          {
+            "drug": "gemfibrozil",
+            "severity": "major",
+            "effect": "increased risk of myopathy"
+          },
+          {
+            "drug": "warfarin",
+            "severity": "moderate",
+            "effect": "increased anticoagulant effect"
+          }
+        ],
+        "monitoring": [
+          "lipid panel",
+          "liver function tests",
+          "creatine kinase",
+          "blood glucose"
+        ],
+        "pregnancy_category": "X",
+        "lactation": "contraindicated"
+      },
+      {
+        "id": "med-005",
+        "name": "Levothyroxine",
+        "generic_name": "levothyroxine sodium",
+        "brand_names": ["Synthroid", "Levoxyl", "Tirosint"],
+        "drug_class": "Thyroid Hormone",
+        "therapeutic_class": "Hormone Replacement",
+        "mechanism_of_action": "Synthetic T4 hormone replacement",
+        "indications": [
+          "Hypothyroidism",
+          "Thyroid Cancer",
+          "Goiter",
+          "Thyroid Suppression Therapy"
+        ],
+        "contraindications": [
+          "Untreated adrenal insufficiency",
+          "Acute myocardial infarction",
+          "Hypersensitivity to levothyroxine"
+        ],
+        "dosage_forms": [
+          {
+            "form": "tablet",
+            "strengths": ["25 mcg", "50 mcg", "75 mcg", "88 mcg", "100 mcg", "112 mcg", "125 mcg", "137 mcg", "150 mcg", "175 mcg", "200 mcg"],
+            "route": "oral"
+          },
+          {
+            "form": "injection",
+            "strengths": ["100 mcg", "200 mcg", "500 mcg"],
+            "route": "intravenous"
+          }
+        ],
+        "dosing": {
+          "hypothyroidism": {
+            "initial": "1.6 mcg/kg/day",
+            "maintenance": "adjust based on TSH",
+            "elderly": "25-50 mcg daily initially"
+          }
+        },
+        "side_effects": {
+          "common": ["palpitations", "tachycardia", "anxiety", "insomnia"],
+          "serious": ["cardiac arrhythmias", "osteoporosis", "adrenal crisis"],
+          "rare": ["pseudotumor cerebri", "seizures"]
+        },
+        "drug_interactions": [
+          {
+            "drug": "warfarin",
+            "severity": "major",
+            "effect": "increased anticoagulant effect"
+          },
+          {
+            "drug": "iron supplements",
+            "severity": "moderate",
+            "effect": "decreased levothyroxine absorption"
+          },
+          {
+            "drug": "calcium carbonate",
+            "severity": "moderate",
+            "effect": "decreased levothyroxine absorption"
+          }
+        ],
+        "monitoring": [
+          "TSH",
+          "free T4",
+          "heart rate",
+          "blood pressure"
+        ],
+        "pregnancy_category": "A",
+        "lactation": "compatible"
+      }
+    ],
+    "drug_classes": [
+      {
+        "class": "ACE Inhibitor",
+        "description": "Angiotensin-converting enzyme inhibitors",
+        "mechanism": "Block conversion of angiotensin I to angiotensin II",
+        "common_uses": ["hypertension", "heart failure", "diabetic nephropathy"]
+      },
+      {
+        "class": "Biguanide",
+        "description": "Antidiabetic medications that decrease glucose production",
+        "mechanism": "Decrease hepatic glucose production, increase insulin sensitivity",
+        "common_uses": ["type 2 diabetes", "prediabetes"]
+      },
+      {
+        "class": "Short-Acting Beta-2 Agonist",
+        "description": "Bronchodilators for acute respiratory symptoms",
+        "mechanism": "Selective beta-2 receptor agonism causing bronchodilation",
+        "common_uses": ["asthma", "COPD", "bronchospasm"]
+      },
+      {
+        "class": "HMG-CoA Reductase Inhibitor",
+        "description": "Cholesterol-lowering medications (statins)",
+        "mechanism": "Inhibit cholesterol synthesis in the liver",
+        "common_uses": ["hypercholesterolemia", "cardiovascular disease prevention"]
+      },
+      {
+        "class": "Thyroid Hormone",
+        "description": "Hormone replacement therapy for thyroid disorders",
+        "mechanism": "Replace deficient thyroid hormones",
+        "common_uses": ["hypothyroidism", "thyroid cancer"]
+      }
+    ],
+    "metadata": {
+      "version": "3.2.1",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "FDA Orange Book, Lexicomp, Clinical Pharmacology",
+      "total_medications": 5,
+      "total_drug_classes": 5,
+      "validation_status": "verified",
+      "regulatory_compliance": "FDA approved"
+    }
+  }
+  

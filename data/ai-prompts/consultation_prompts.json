@@ -1,0 +1,15 @@
+{
+    "prompt_templates": {
+      "session_preparation": "Provide consultation preparation recommendations based on patient data.",
+      "real_time_assistance": "Assist providers during live consultations with AI-generated insights.",
+      "post_session_summary": "Generate detailed consultation summaries and follow-up plans.",
+      "patient_engagement": "Create patient-friendly explanations and educational content."
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "Internal AI prompt repository",
+      "validation_status": "verified"
+    }
+  }
+  

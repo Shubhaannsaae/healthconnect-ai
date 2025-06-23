@@ -1,0 +1,24 @@
+[
+    {
+      "session_id": "CONS-001",
+      "patient_id": "PAT-001",
+      "provider_id": "PROV-001",
+      "date": "2025-05-15T14:30:00Z",
+      "type": "routine",
+      "notes": "Routine check-up, all vitals normal.",
+      "prescriptions": [
+        {
+          "medication": "lisinopril",
+          "dosage": "10mg",
+          "frequency": "daily",
+          "duration": "30 days"
+        }
+      ],
+      "diagnoses": ["hypertension"],
+      "follow_up": {
+        "recommended": true,
+        "date": "2025-06-15T14:30:00Z"
+      }
+    }
+  ]
+  

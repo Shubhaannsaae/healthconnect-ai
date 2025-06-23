@@ -1,0 +1,23 @@
+[
+    {
+      "scenario_id": "EMG-001",
+      "name": "Hypertensive Crisis",
+      "description": "Severe high blood pressure requiring immediate attention.",
+      "triggers": [
+        "systolic_pressure > 180",
+        "diastolic_pressure > 110"
+      ],
+      "actions": [
+        "send_emergency_alert",
+        "notify_provider",
+        "call_ems"
+      ],
+      "protocol": [
+        "Confirm blood pressure reading with repeat measurement.",
+        "Assess for symptoms: headache, chest pain, shortness of breath, neurologic deficits.",
+        "If symptomatic, activate emergency response and administer antihypertensive as per protocol."
+      ],
+      "severity": "critical"
+    }
+  ]
+  

@@ -1,0 +1,156 @@
+{
+    "device_profile": {
+      "id": "dev-profile-glm-001",
+      "device_type": "glucose_meter",
+      "name": "Blood Glucose Meter",
+      "description": "Portable device for measuring blood glucose levels using enzymatic biosensors.",
+      "category": "metabolic",
+      "regulatory_info": {
+        "fda_class": "Class II",
+        "fda_510k": "K11223344",
+        "ce_marking": "CE-IVD-2023-003",
+        "iso_standards": ["ISO 15197:2013", "ISO 13485"],
+        "hipaa_compliant": true
+      },
+      "technical_specifications": {
+        "measurement_range": {
+          "glucose": {
+            "min": 20,
+            "max": 600,
+            "unit": "mg/dL",
+            "accuracy": "±15% (per ISO 15197:2013)"
+          }
+        },
+        "sample_volume": "0.5-1.5 µL",
+        "measurement_time": "5 seconds",
+        "operating_temperature": {
+          "min": 5,
+          "max": 45,
+          "unit": "°C"
+        },
+        "storage_temperature": {
+          "min": -20,
+          "max": 50,
+          "unit": "°C"
+        },
+        "humidity_range": {
+          "min": 10,
+          "max": 90,
+          "unit": "%RH"
+        }
+      },
+      "connectivity": {
+        "protocols": ["Bluetooth 4.0", "USB-C"],
+        "range": {
+          "bluetooth": "5 meters"
+        },
+        "data_transmission": {
+          "real_time": false,
+          "batch_mode": true,
+          "encryption": "AES-128"
+        },
+        "cloud_integration": {
+          "aws_iot": true,
+          "azure_iot": false,
+          "google_cloud": false
+        }
+      },
+      "power_management": {
+        "battery_type": "CR2032 coin cell",
+        "battery_life": {
+          "typical": "1000 measurements"
+        },
+        "auto_power_off": "2 minutes",
+        "power_consumption": {
+          "active": "10 mA",
+          "standby": "0.1 mA"
+        }
+      },
+      "data_parameters": [
+        {
+          "parameter": "glucose",
+          "display_name": "Blood Glucose",
+          "unit": "mg/dL",
+          "data_type": "integer",
+          "normal_range": {
+            "fasting": {"min": 70, "max": 100},
+            "postprandial": {"min": 70, "max": 140}
+          },
+          "alert_thresholds": {
+            "low_critical": 54,
+            "low_warning": 70,
+            "high_warning": 180,
+            "high_critical": 250
+          },
+          "measurement_frequency": "on_demand"
+        }
+      ],
+      "calibration": {
+        "required": false,
+        "method": "factory_calibrated",
+        "reference_standard": "NIST-traceable"
+      },
+      "alerts_and_notifications": {
+        "supported_alert_types": [
+          "threshold_exceeded",
+          "device_malfunction",
+          "low_battery",
+          "strip_error"
+        ],
+        "notification_methods": ["app_push", "beep", "display_message"]
+      },
+      "data_storage": {
+        "local_storage": {
+          "capacity": "500 readings",
+          "format": "encrypted"
+        },
+        "cloud_storage": {
+          "retention_period": "7 years",
+          "backup_frequency": "on_sync",
+          "encryption": "AES-256"
+        }
+      },
+      "user_interface": {
+        "display": {
+          "type": "LCD",
+          "size": "1.0 inch",
+          "resolution": "128x64",
+          "color": false
+        },
+        "controls": {
+          "buttons": 2,
+          "touch_screen": false
+        },
+        "mobile_app": {
+          "platforms": ["iOS", "Android"],
+          "features": ["reading_history", "trend_analysis", "alerts"]
+        }
+      },
+      "maintenance": {
+        "cleaning_instructions": "Wipe with alcohol pad after each use.",
+        "replacement_parts": ["test_strips", "lancets", "battery"],
+        "firmware_updates": {
+          "method": "USB",
+          "frequency": "as_needed",
+          "auto_update": false
+        },
+        "warranty": "1 year",
+        "expected_lifespan": "3 years"
+      },
+      "integration_apis": {
+        "rest_api": {
+          "base_url": "https://api.healthconnect.com/v1/devices/glucose_meter",
+          "authentication": "OAuth 2.0"
+        },
+        "sdk_support": ["JavaScript", "Python", "Swift"]
+      }
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "created_by": "HealthConnect AI Device Team",
+      "validation_status": "certified",
+      "compliance_verified": true
+    }
+  }
+  

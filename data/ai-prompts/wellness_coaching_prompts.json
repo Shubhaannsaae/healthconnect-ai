@@ -1,0 +1,15 @@
+{
+    "prompt_templates": {
+      "lifestyle_recommendations": "Generate personalized lifestyle and wellness coaching advice.",
+      "behavioral_change": "Suggest strategies for sustainable behavioral change.",
+      "goal_tracking": "Provide motivational messages and progress tracking.",
+      "stress_management": "Offer stress reduction techniques and mindfulness exercises."
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "Internal AI prompt repository",
+      "validation_status": "verified"
+    }
+  }
+  

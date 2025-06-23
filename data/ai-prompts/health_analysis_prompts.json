@@ -1,0 +1,15 @@
+{
+    "prompt_templates": {
+      "symptom_assessment": "Analyze patient symptoms and provide differential diagnosis with severity levels.",
+      "risk_analysis": "Calculate risk scores based on vital signs and medical history.",
+      "drug_interaction": "Identify potential drug interactions and contraindications.",
+      "health_insights": "Generate personalized health insights and wellness recommendations."
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "Internal AI prompt repository",
+      "validation_status": "verified"
+    }
+  }
+  

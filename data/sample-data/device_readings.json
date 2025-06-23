@@ -1,0 +1,22 @@
+[
+    {
+      "device_id": "DEV-HR-001",
+      "patient_id": "PAT-001",
+      "timestamp": "2025-06-19T08:00:00Z",
+      "data": {
+        "heart_rate": 72,
+        "blood_pressure": {
+          "systolic": 120,
+          "diastolic": 80
+        },
+        "temperature": 36.8,
+        "oxygen_saturation": 98
+      },
+      "quality_score": 0.95,
+      "location": {
+        "lat": 34.0522,
+        "lng": -118.2437
+      }
+    }
+  ]
+  

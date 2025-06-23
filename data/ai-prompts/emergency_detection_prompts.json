@@ -1,0 +1,15 @@
+{
+    "prompt_templates": {
+      "emergency_risk_assessment": "Evaluate emergency risk based on real-time health data and alert levels.",
+      "escalation_protocols": "Determine appropriate escalation steps for emergency alerts.",
+      "notification_messages": "Generate notification messages for emergency contacts and providers.",
+      "response_actions": "Suggest immediate response actions for critical emergencies."
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "Internal AI prompt repository",
+      "validation_status": "verified"
+    }
+  }
+  

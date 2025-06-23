@@ -1,0 +1,131 @@
+{
+    "device_profile": {
+      "id": "dev-profile-bpc-001",
+      "device_type": "blood_pressure_cuff",
+      "name": "Automated Blood Pressure Monitor",
+      "description": "Oscillometric blood pressure measurement device with irregular heartbeat detection",
+      "category": "cardiovascular",
+      "regulatory_info": {
+        "fda_class": "Class II",
+        "fda_510k": "K987654321",
+        "ce_marking": "CE-MD-2023-002",
+        "iso_standards": ["ISO 81060-2", "ISO 27001", "ISO 13485"],
+        "hipaa_compliant": true,
+        "aami_validated": true,
+        "bhs_grade": "A/A"
+      },
+      "technical_specifications": {
+        "measurement_range": {
+          "systolic_pressure": {
+            "min": 60,
+            "max": 280,
+            "unit": "mmHg",
+            "accuracy": "±3 mmHg"
+          },
+          "diastolic_pressure": {
+            "min": 40,
+            "max": 200,
+            "unit": "mmHg",
+            "accuracy": "±3 mmHg"
+          },
+          "pulse_rate": {
+            "min": 40,
+            "max": 200,
+            "unit": "bpm",
+            "accuracy": "±5%"
+          }
+        },
+        "cuff_sizes": [
+          {
+            "size": "small_adult",
+            "circumference": "22-32 cm",
+            "recommended_for": "thin_adults"
+          },
+          {
+            "size": "standard_adult",
+            "circumference": "32-42 cm",
+            "recommended_for": "average_adults"
+          },
+          {
+            "size": "large_adult",
+            "circumference": "42-52 cm",
+            "recommended_for": "large_adults"
+          }
+        ],
+        "measurement_method": "oscillometric",
+        "inflation_pressure": {
+          "max": 300,
+          "unit": "mmHg"
+        },
+        "measurement_time": "30-60 seconds",
+        "operating_temperature": {
+          "min": 10,
+          "max": 40,
+          "unit": "°C"
+        },
+        "storage_temperature": {
+          "min": -20,
+          "max": 70,
+          "unit": "°C"
+        },
+        "humidity_range": {
+          "min": 15,
+          "max": 85,
+          "unit": "%RH"
+        }
+      },
+      "connectivity": {
+        "protocols": ["Bluetooth 4.2", "WiFi 802.11b/g/n", "USB"],
+        "range": {
+          "bluetooth": "8 meters",
+          "wifi": "30 meters"
+        },
+        "data_transmission": {
+          "real_time": false,
+          "batch_mode": true,
+          "encryption": "AES-128"
+        },
+        "cloud_integration": {
+          "aws_iot": true,
+          "azure_iot": false,
+          "google_cloud": true
+        }
+      },
+      "power_management": {
+        "battery_type": "4x AA alkaline or rechargeable",
+        "battery_life": {
+          "alkaline": "300 measurements",
+          "rechargeable": "200 measurements"
+        },
+        "ac_adapter": {
+          "voltage": "6V DC",
+          "included": true
+        },
+        "auto_power_off": "3 minutes",
+        "power_consumption": {
+          "measurement": "200 mA",
+          "standby": "0.1 mA"
+        }
+      },
+      "data_parameters": [
+        {
+          "parameter": "systolic_pressure",
+          "display_name": "Systolic Blood Pressure",
+          "unit": "mmHg",
+          "data_type": "integer",
+          "normal_range": {
+            "optimal": {"min": 90, "max": 120},
+            "normal": {"min": 120, "max": 130},
+            "high_normal": {"min": 130, "max": 140}
+          },
+          "alert_thresholds": {
+            "low_critical": 80,
+            "low_warning": 90,
+            "high_warning": 140,
+            "high_critical": 180
+          },
+          "measurement_frequency": "on_demand"
+        },
+        {
+          "parameter": "diastolic_pressure",
+  

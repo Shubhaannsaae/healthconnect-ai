@@ -1,0 +1,173 @@
+{
+    "device_profile": {
+      "id": "dev-profile-activity-001",
+      "device_type": "activity_tracker",
+      "name": "Wearable Activity Tracker",
+      "description": "Multi-sensor wearable for tracking steps, activity, sleep, and energy expenditure.",
+      "category": "wellness",
+      "regulatory_info": {
+        "fda_class": "Class I (exempt)",
+        "ce_marking": "CE-MD-2023-005",
+        "iso_standards": ["ISO 13485"],
+        "hipaa_compliant": true
+      },
+      "technical_specifications": {
+        "sensors": [
+          "3-axis accelerometer",
+          "gyroscope",
+          "optical heart rate",
+          "skin temperature"
+        ],
+        "measurement_range": {
+          "steps": {
+            "min": 0,
+            "max": 50000,
+            "unit": "steps"
+          },
+          "heart_rate": {
+            "min": 40,
+            "max": 220,
+            "unit": "bpm"
+          },
+          "sleep_duration": {
+            "min": 0,
+            "max": 24,
+            "unit": "hours"
+          }
+        },
+        "sampling_rate": {
+          "default": 50,
+          "unit": "Hz"
+        },
+        "operating_temperature": {
+          "min": -10,
+          "max": 45,
+          "unit": "°C"
+        },
+        "humidity_range": {
+          "min": 10,
+          "max": 95,
+          "unit": "%RH"
+        }
+      },
+      "connectivity": {
+        "protocols": ["Bluetooth 5.0", "WiFi 802.11n"],
+        "range": {
+          "bluetooth": "10 meters",
+          "wifi": "50 meters"
+        },
+        "data_transmission": {
+          "real_time": true,
+          "batch_mode": true,
+          "encryption": "AES-256"
+        },
+        "cloud_integration": {
+          "aws_iot": true,
+          "azure_iot": true,
+          "google_cloud": true
+        }
+      },
+      "power_management": {
+        "battery_type": "Lithium-polymer rechargeable",
+        "battery_capacity": "120 mAh",
+        "battery_life": {
+          "typical_use": "7 days",
+          "standby": "21 days"
+        },
+        "charging": {
+          "method": "magnetic USB",
+          "time_to_full": "1 hour"
+        }
+      },
+      "data_parameters": [
+        {
+          "parameter": "steps",
+          "display_name": "Step Count",
+          "unit": "steps",
+          "data_type": "integer",
+          "goal": 10000,
+          "measurement_frequency": "continuous"
+        },
+        {
+          "parameter": "heart_rate",
+          "display_name": "Heart Rate",
+          "unit": "bpm",
+          "data_type": "integer",
+          "normal_range": {
+            "rest": {"min": 60, "max": 100}
+          },
+          "measurement_frequency": "every_minute"
+        },
+        {
+          "parameter": "sleep_duration",
+          "display_name": "Sleep Duration",
+          "unit": "hours",
+          "data_type": "float",
+          "goal": 8,
+          "measurement_frequency": "daily"
+        }
+      ],
+      "alerts_and_notifications": {
+        "supported_alert_types": [
+          "goal_achieved",
+          "inactivity",
+          "high_heart_rate",
+          "low_battery"
+        ],
+        "notification_methods": ["app_push", "vibration", "display_message"]
+      },
+      "data_storage": {
+        "local_storage": {
+          "capacity": "14 days",
+          "format": "compressed"
+        },
+        "cloud_storage": {
+          "retention_period": "7 years",
+          "backup_frequency": "daily",
+          "encryption": "AES-256"
+        }
+      },
+      "user_interface": {
+        "display": {
+          "type": "OLED",
+          "size": "0.96 inch",
+          "resolution": "128x64",
+          "color": true
+        },
+        "controls": {
+          "buttons": 1,
+          "touch_screen": false
+        },
+        "mobile_app": {
+          "platforms": ["iOS", "Android"],
+          "features": ["activity_tracking", "sleep_analysis", "goal_notifications"]
+        }
+      },
+      "maintenance": {
+        "cleaning_instructions": "Wipe with damp cloth. Avoid submersion.",
+        "replacement_parts": ["wristband", "charger"],
+        "firmware_updates": {
+          "method": "OTA",
+          "frequency": "quarterly",
+          "auto_update": true
+        },
+        "warranty": "1 year",
+        "expected_lifespan": "3 years"
+      },
+      "integration_apis": {
+        "rest_api": {
+          "base_url": "https://api.healthconnect.com/v1/devices/activity_tracker",
+          "authentication": "OAuth 2.0"
+        },
+        "sdk_support": ["JavaScript", "Swift", "Kotlin"]
+      }
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "created_by": "HealthConnect AI Device Team",
+      "validation_status": "certified",
+      "compliance_verified": true
+    }
+  }
+  

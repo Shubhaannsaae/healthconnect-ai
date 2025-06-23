@@ -1,0 +1,267 @@
+{
+    "terms": [
+      {
+        "term": "Hypertension",
+        "definition": "A condition in which the blood pressure in the arteries is persistently elevated above normal ranges (≥130/80 mmHg)",
+        "category": "condition",
+        "synonyms": ["high blood pressure", "arterial hypertension"],
+        "related_terms": ["systolic pressure", "diastolic pressure", "blood pressure"],
+        "icd10_code": "I10",
+        "severity_levels": ["stage 1", "stage 2", "hypertensive crisis"],
+        "normal_ranges": {
+          "systolic": "< 120 mmHg",
+          "diastolic": "< 80 mmHg"
+        }
+      },
+      {
+        "term": "Diabetes Mellitus",
+        "definition": "A group of metabolic disorders characterized by high blood sugar levels over a prolonged period due to insulin deficiency or resistance",
+        "category": "condition",
+        "synonyms": ["diabetes", "DM"],
+        "related_terms": ["glucose", "insulin", "HbA1c", "hyperglycemia"],
+        "icd10_code": "E11",
+        "types": ["type 1", "type 2", "gestational"],
+        "diagnostic_criteria": {
+          "fasting_glucose": "≥ 126 mg/dL",
+          "random_glucose": "≥ 200 mg/dL",
+          "hba1c": "≥ 6.5%"
+        }
+      },
+      {
+        "term": "Asthma",
+        "definition": "A common long-term inflammatory disease of the airways of the lungs characterized by variable and recurring symptoms",
+        "category": "condition",
+        "synonyms": ["bronchial asthma"],
+        "related_terms": ["bronchospasm", "wheezing", "dyspnea", "peak flow"],
+        "icd10_code": "J45",
+        "severity_levels": ["intermittent", "mild persistent", "moderate persistent", "severe persistent"],
+        "triggers": ["allergens", "exercise", "cold air", "stress", "infections"]
+      },
+      {
+        "term": "Tachycardia",
+        "definition": "A heart rate that exceeds the normal resting rate, typically defined as greater than 100 beats per minute in adults",
+        "category": "symptom",
+        "synonyms": ["rapid heart rate"],
+        "related_terms": ["heart rate", "palpitations", "arrhythmia"],
+        "normal_ranges": {
+          "adult_resting": "60-100 bpm"
+        },
+        "types": ["sinus tachycardia", "supraventricular tachycardia", "ventricular tachycardia"]
+      },
+      {
+        "term": "Bradycardia",
+        "definition": "A slower than normal heart rate, typically defined as less than 60 beats per minute in adults",
+        "category": "symptom",
+        "synonyms": ["slow heart rate"],
+        "related_terms": ["heart rate", "sinus bradycardia", "heart block"],
+        "normal_ranges": {
+          "adult_resting": "60-100 bpm"
+        },
+        "causes": ["medications", "heart disease", "electrolyte imbalances", "hypothyroidism"]
+      },
+      {
+        "term": "Hypotension",
+        "definition": "Low blood pressure, typically defined as systolic pressure below 90 mmHg or diastolic pressure below 60 mmHg",
+        "category": "symptom",
+        "synonyms": ["low blood pressure"],
+        "related_terms": ["blood pressure", "shock", "syncope"],
+        "types": ["orthostatic", "postprandial", "neurally mediated"],
+        "symptoms": ["dizziness", "fainting", "fatigue", "nausea"]
+      },
+      {
+        "term": "Lisinopril",
+        "definition": "An ACE inhibitor medication used to treat high blood pressure, heart failure, and improve survival after heart attack",
+        "category": "medication",
+        "synonyms": ["Prinivil", "Zestril"],
+        "related_terms": ["ACE inhibitor", "antihypertensive", "cardiovascular"],
+        "drug_class": "ACE Inhibitor",
+        "mechanism": "Inhibits angiotensin-converting enzyme",
+        "indications": ["hypertension", "heart failure", "post-MI"]
+      },
+      {
+        "term": "Metformin",
+        "definition": "An oral diabetes medicine that helps control blood sugar levels by decreasing glucose production and increasing insulin sensitivity",
+        "category": "medication",
+        "synonyms": ["Glucophage", "Fortamet"],
+        "related_terms": ["biguanide", "antidiabetic", "glucose"],
+        "drug_class": "Biguanide",
+        "mechanism": "Decreases hepatic glucose production",
+        "indications": ["type 2 diabetes", "prediabetes", "PCOS"]
+      },
+      {
+        "term": "Albuterol",
+        "definition": "A short-acting beta-2 agonist bronchodilator used to treat bronchospasm in conditions such as asthma and COPD",
+        "category": "medication",
+        "synonyms": ["Ventolin", "ProAir", "salbutamol"],
+        "related_terms": ["bronchodilator", "beta-2 agonist", "inhaler"],
+        "drug_class": "Short-Acting Beta-2 Agonist",
+        "mechanism": "Selective beta-2 receptor agonism",
+        "indications": ["asthma", "COPD", "bronchospasm"]
+      },
+      {
+        "term": "Oxygen Saturation",
+        "definition": "The percentage of oxygen-saturated hemoglobin relative to total hemoglobin in the blood, measured using pulse oximetry",
+        "category": "vital_sign",
+        "synonyms": ["SpO2", "oxygen sat", "pulse ox"],
+        "related_terms": ["pulse oximetry", "hypoxemia", "respiratory"],
+        "normal_ranges": {
+          "adult": "95-100%",
+          "elderly": "≥ 95%"
+        },
+        "measurement_method": "pulse oximetry"
+      },
+      {
+        "term": "Blood Glucose",
+        "definition": "The concentration of glucose present in the blood, an important indicator of metabolic health",
+        "category": "laboratory_value",
+        "synonyms": ["blood sugar", "glucose level"],
+        "related_terms": ["diabetes", "hypoglycemia", "hyperglycemia"],
+        "normal_ranges": {
+          "fasting": "70-100 mg/dL",
+          "random": "< 140 mg/dL",
+          "post_meal": "< 180 mg/dL"
+        },
+        "measurement_units": ["mg/dL", "mmol/L"]
+      },
+      {
+        "term": "HbA1c",
+        "definition": "Glycated hemoglobin, a measure of average blood glucose levels over the past 2-3 months",
+        "category": "laboratory_value",
+        "synonyms": ["hemoglobin A1c", "glycated hemoglobin"],
+        "related_terms": ["diabetes", "glucose control", "long-term glucose"],
+        "normal_ranges": {
+          "normal": "< 5.7%",
+          "prediabetes": "5.7-6.4%",
+          "diabetes": "≥ 6.5%"
+        },
+        "target_ranges": {
+          "diabetes": "< 7%"
+        }
+      },
+      {
+        "term": "Creatinine",
+        "definition": "A waste product from muscle metabolism that is filtered by the kidneys, used as a marker of kidney function",
+        "category": "laboratory_value",
+        "synonyms": ["serum creatinine"],
+        "related_terms": ["kidney function", "GFR", "renal", "nephrology"],
+        "normal_ranges": {
+          "male": "0.7-1.3 mg/dL",
+          "female": "0.6-1.1 mg/dL"
+        },
+        "clinical_significance": "elevated levels indicate kidney dysfunction"
+      },
+      {
+        "term": "Electrocardiogram",
+        "definition": "A test that records the electrical activity of the heart over a period of time using electrodes placed on the skin",
+        "category": "diagnostic_test",
+        "synonyms": ["ECG", "EKG"],
+        "related_terms": ["cardiac rhythm", "arrhythmia", "heart rate"],
+        "components": ["P wave", "QRS complex", "T wave"],
+        "indications": ["chest pain", "palpitations", "syncope", "cardiac monitoring"]
+      },
+      {
+        "term": "Spirometry",
+        "definition": "A pulmonary function test that measures the amount and speed of air that can be inhaled and exhaled",
+        "category": "diagnostic_test",
+        "synonyms": ["pulmonary function test", "PFT"],
+        "related_terms": ["FEV1", "FVC", "peak flow", "lung function"],
+        "measurements": ["forced vital capacity", "forced expiratory volume"],
+        "indications": ["asthma", "COPD", "dyspnea", "lung disease"]
+      }
+    ],
+    "categories": [
+      {
+        "category": "condition",
+        "description": "Medical conditions, diseases, and disorders",
+        "count": 3
+      },
+      {
+        "category": "symptom",
+        "description": "Signs and symptoms of medical conditions",
+        "count": 3
+      },
+      {
+        "category": "medication",
+        "description": "Pharmaceutical drugs and treatments",
+        "count": 3
+      },
+      {
+        "category": "vital_sign",
+        "description": "Physiological measurements indicating health status",
+        "count": 1
+      },
+      {
+        "category": "laboratory_value",
+        "description": "Blood tests and laboratory measurements",
+        "count": 3
+      },
+      {
+        "category": "diagnostic_test",
+        "description": "Medical tests and procedures for diagnosis",
+        "count": 2
+      }
+    ],
+    "abbreviations": [
+      {
+        "abbreviation": "BP",
+        "full_term": "Blood Pressure",
+        "category": "vital_sign"
+      },
+      {
+        "abbreviation": "HR",
+        "full_term": "Heart Rate",
+        "category": "vital_sign"
+      },
+      {
+        "abbreviation": "RR",
+        "full_term": "Respiratory Rate",
+        "category": "vital_sign"
+      },
+      {
+        "abbreviation": "SpO2",
+        "full_term": "Oxygen Saturation",
+        "category": "vital_sign"
+      },
+      {
+        "abbreviation": "BG",
+        "full_term": "Blood Glucose",
+        "category": "laboratory_value"
+      },
+      {
+        "abbreviation": "ACE",
+        "full_term": "Angiotensin-Converting Enzyme",
+        "category": "medication"
+      },
+      {
+        "abbreviation": "SABA",
+        "full_term": "Short-Acting Beta-2 Agonist",
+        "category": "medication"
+      },
+      {
+        "abbreviation": "DM",
+        "full_term": "Diabetes Mellitus",
+        "category": "condition"
+      },
+      {
+        "abbreviation": "HTN",
+        "full_term": "Hypertension",
+        "category": "condition"
+      },
+      {
+        "abbreviation": "COPD",
+        "full_term": "Chronic Obstructive Pulmonary Disease",
+        "category": "condition"
+      }
+    ],
+    "metadata": {
+      "version": "4.1.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "source": "Medical terminology databases, clinical guidelines",
+      "total_terms": 15,
+      "total_categories": 6,
+      "total_abbreviations": 10,
+      "validation_status": "verified",
+      "language": "en-US"
+    }
+  }
+  

@@ -1,0 +1,155 @@
+{
+    "device_profile": {
+      "id": "dev-profile-temp-001",
+      "device_type": "temperature_sensor",
+      "name": "Digital Body Temperature Sensor",
+      "description": "Clinical-grade digital thermometer for oral, axillary, or rectal use.",
+      "category": "vital_signs",
+      "regulatory_info": {
+        "fda_class": "Class II",
+        "fda_510k": "K55667788",
+        "ce_marking": "CE-MD-2023-004",
+        "iso_standards": ["ISO 80601-2-56", "ISO 13485"],
+        "hipaa_compliant": true
+      },
+      "technical_specifications": {
+        "measurement_range": {
+          "temperature": {
+            "min": 32.0,
+            "max": 43.0,
+            "unit": "°C",
+            "accuracy": "±0.1°C"
+          }
+        },
+        "measurement_time": "10 seconds",
+        "operating_temperature": {
+          "min": 10,
+          "max": 40,
+          "unit": "°C"
+        },
+        "storage_temperature": {
+          "min": -10,
+          "max": 55,
+          "unit": "°C"
+        },
+        "humidity_range": {
+          "min": 10,
+          "max": 85,
+          "unit": "%RH"
+        }
+      },
+      "connectivity": {
+        "protocols": ["Bluetooth 4.2", "USB-C"],
+        "range": {
+          "bluetooth": "5 meters"
+        },
+        "data_transmission": {
+          "real_time": false,
+          "batch_mode": true,
+          "encryption": "AES-128"
+        },
+        "cloud_integration": {
+          "aws_iot": true,
+          "azure_iot": false,
+          "google_cloud": false
+        }
+      },
+      "power_management": {
+        "battery_type": "CR2032 coin cell",
+        "battery_life": {
+          "typical": "1000 measurements"
+        },
+        "auto_power_off": "1 minute",
+        "power_consumption": {
+          "active": "5 mA",
+          "standby": "0.05 mA"
+        }
+      },
+      "data_parameters": [
+        {
+          "parameter": "temperature",
+          "display_name": "Body Temperature",
+          "unit": "°C",
+          "data_type": "float",
+          "normal_range": {
+            "oral": {"min": 36.1, "max": 37.2},
+            "axillary": {"min": 35.9, "max": 36.7},
+            "rectal": {"min": 36.6, "max": 38.0}
+          },
+          "alert_thresholds": {
+            "low_critical": 34.0,
+            "low_warning": 35.0,
+            "high_warning": 38.0,
+            "high_critical": 40.0
+          },
+          "measurement_frequency": "on_demand"
+        }
+      ],
+      "calibration": {
+        "required": false,
+        "method": "factory_calibrated",
+        "reference_standard": "NIST-traceable"
+      },
+      "alerts_and_notifications": {
+        "supported_alert_types": [
+          "threshold_exceeded",
+          "device_malfunction",
+          "low_battery"
+        ],
+        "notification_methods": ["app_push", "beep", "display_message"]
+      },
+      "data_storage": {
+        "local_storage": {
+          "capacity": "200 readings",
+          "format": "encrypted"
+        },
+        "cloud_storage": {
+          "retention_period": "7 years",
+          "backup_frequency": "on_sync",
+          "encryption": "AES-256"
+        }
+      },
+      "user_interface": {
+        "display": {
+          "type": "LCD",
+          "size": "0.8 inch",
+          "resolution": "64x32",
+          "color": false
+        },
+        "controls": {
+          "buttons": 1,
+          "touch_screen": false
+        },
+        "mobile_app": {
+          "platforms": ["iOS", "Android"],
+          "features": ["reading_history", "trend_analysis", "alerts"]
+        }
+      },
+      "maintenance": {
+        "cleaning_instructions": "Disinfect probe after each use.",
+        "replacement_parts": ["probe covers", "battery"],
+        "firmware_updates": {
+          "method": "USB",
+          "frequency": "as_needed",
+          "auto_update": false
+        },
+        "warranty": "1 year",
+        "expected_lifespan": "3 years"
+      },
+      "integration_apis": {
+        "rest_api": {
+          "base_url": "https://api.healthconnect.com/v1/devices/temperature_sensor",
+          "authentication": "OAuth 2.0"
+        },
+        "sdk_support": ["JavaScript", "Python"]
+      }
+    },
+    "metadata": {
+      "version": "1.0.0",
+      "last_updated": "2025-06-20T00:00:00Z",
+      "created_by": "HealthConnect AI Device Team",
+      "validation_status": "certified",
+      "compliance_verified": true
+    }
+  }
+  
