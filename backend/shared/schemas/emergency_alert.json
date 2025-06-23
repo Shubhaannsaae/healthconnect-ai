@@ -1,0 +1,214 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Emergency Alert Schema",
+    "type": "object",
+    "required": ["alert_id", "patient_id", "alert_type", "urgency_level", "timestamp"],
+    "properties": {
+      "alert_id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]{8,64}$",
+        "description": "Unique alert identifier"
+      },
+      "patient_id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9]{8,32}$",
+        "description": "Patient identifier"
+      },
+      "device_id": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]{8,64}$",
+        "description": "Device that triggered the alert"
+      },
+      "alert_type": {
+        "type": "string",
+        "enum": [
+          "vital_signs_critical",
+          "device_malfunction",
+          "manual_trigger",
+          "ai_analysis",
+          "medication_adherence",
+          "fall_detection",
+          "panic_button"
+        ],
+        "description": "Type of emergency alert"
+      },
+      "urgency_level": {
+        "type": "string",
+        "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+        "description": "Urgency level of the alert"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Alert generation timestamp"
+      },
+      "health_data": {
+        "type": "object",
+        "description": "Health data that triggered the alert",
+        "properties": {
+          "vital_signs": {
+            "type": "object"
+          },
+          "symptoms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "risk_factors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "alert_criteria": {
+        "type": "object",
+        "properties": {
+          "threshold_exceeded": {
+            "type": "object",
+            "properties": {
+              "parameter": {
+                "type": "string"
+              },
+              "value": {
+                "type": "number"
+              },
+              "threshold": {
+                "type": "number"
+              },
+              "direction": {
+                "type": "string",
+                "enum": ["above", "below"]
+              }
+            }
+          },
+          "pattern_detected": {
+            "type": "string"
+          },
+          "ai_confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      },
+      "location": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "address": {
+            "type": "string"
+          },
+          "facility": {
+            "type": "string"
+          }
+        }
+      },
+      "response_actions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "action_type": {
+              "type": "string",
+              "enum": [
+                "notification_sent",
+                "emergency_services_contacted",
+                "provider_alerted",
+                "family_notified",
+                "consultation_initiated"
+              ]
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["pending", "completed", "failed"]
+            },
+            "details": {
+              "type": "object"
+            }
+          },
+          "required": ["action_type", "timestamp", "status"]
+        }
+      },
+      "escalation_history": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "escalation_level": {
+              "type": "number",
+              "minimum": 1
+            },
+            "escalated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "escalated_to": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "resolution": {
+        "type": "object",
+        "properties": {
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolved_by": {
+            "type": "string"
+          },
+          "resolution_type": {
+            "type": "string",
+            "enum": [
+              "false_alarm",
+              "patient_stable",
+              "treatment_provided",
+              "hospitalization",
+              "patient_deceased"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "source_system": {
+            "type": "string"
+          },
+          "correlation_id": {
+            "type": "string"
+          },
+          "related_alerts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+  
