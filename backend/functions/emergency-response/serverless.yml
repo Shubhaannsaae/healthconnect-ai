@@ -1,0 +1,436 @@
+service: healthconnect-emergency-response
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 300
+  memorySize: 1024
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    EMERGENCY_ALERTS_TABLE: ${self:service}-${self:provider.stage}-emergency-alerts
+    EMERGENCY_CONTACTS_TABLE: ${self:service}-${self:provider.stage}-emergency-contacts
+    EMERGENCY_TOPIC_ARN: 
+      Ref: EmergencyResponseTopic
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}-event-bus
+    CONSULTATION_FUNCTION_ARN: ${cf:healthconnect-consultation-${self:provider.stage}.ConsultationFunctionArn}
+    TWILIO_ACCOUNT_SID: ${ssm:/healthconnect/${self:provider.stage}/twilio/account_sid}
+    TWILIO_AUTH_TOKEN: ${ssm:/healthconnect/${self:provider.stage}/twilio/auth_token}
+    TWILIO_PHONE_NUMBER: ${ssm:/healthconnect/${self:provider.stage}/twilio/phone_number}
+    SES_SENDER_EMAIL: ${ssm:/healthconnect/${self:provider.stage}/ses/sender_email}
+    PINPOINT_APP_ID: ${ssm:/healthconnect/${self:provider.stage}/pinpoint/app_id}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - Fn::GetAtt: [EmergencyAlertsTable, Arn]
+            - Fn::GetAtt: [EmergencyContactsTable, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [EmergencyAlertsTable, Arn]
+                  - 'index/*'
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [EmergencyContactsTable, Arn]
+                  - 'index/*'
+        - Effect: Allow
+          Action:
+            - sns:Publish
+            - sns:Subscribe
+            - sns:Unsubscribe
+          Resource:
+            - Ref: EmergencyResponseTopic
+            - arn:aws:sns:${self:provider.region}:${aws:accountId}:*
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+            - ses:SendRawEmail
+          Resource: 
+            - arn:aws:ses:${self:provider.region}:${aws:accountId}:identity/*
+        - Effect: Allow
+          Action:
+            - mobiletargeting:SendMessages
+            - mobiletargeting:GetEndpoint
+            - mobiletargeting:UpdateEndpoint
+          Resource:
+            - arn:aws:mobiletargeting:${self:provider.region}:${aws:accountId}:apps/*
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            - Fn::GetAtt: [EmergencyEventBus, Arn]
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource:
+            - ${self:provider.environment.CONSULTATION_FUNCTION_ARN}
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+            - ssm:GetParameters
+          Resource:
+            - arn:aws:ssm:${self:provider.region}:${aws:accountId}:parameter/healthconnect/${self:provider.stage}/*
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  emergencyResponse:
+    handler: handler.lambda_handler
+    description: Process emergency alerts and coordinate response
+    events:
+      - http:
+          path: /emergency
+          method: post
+          cors: true
+      - http:
+          path: /alerts
+          method: get
+          cors: true
+      - http:
+          path: /alerts
+          method: put
+          cors: true
+      - http:
+          path: /test
+          method: post
+          cors: true
+      - sns:
+          arn:
+            Ref: EmergencyResponseTopic
+          topicName: ${self:service}-${self:provider.stage}-emergency-response
+      - eventBridge:
+          eventBus: ${self:provider.environment.EVENT_BUS_NAME}
+          pattern:
+            source: ["healthconnect.analysis"]
+            detail-type: ["Health Analysis Complete"]
+            detail:
+              urgency_level: ["CRITICAL", "HIGH"]
+      - eventBridge:
+          eventBus: ${self:provider.environment.EVENT_BUS_NAME}
+          pattern:
+            source: ["healthconnect.devices"]
+            detail-type: ["Device Alert"]
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+    reservedConcurrency: 10
+    deadLetterQueue:
+      targetArn:
+        Fn::GetAtt: [EmergencyDLQ, Arn]
+    
+  emergencyEscalation:
+    handler: handler.escalation_handler
+    description: Handle emergency escalation and follow-up
+    timeout: 900
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+          input:
+            action: "check_escalations"
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+    
+  emergencyMetrics:
+    handler: handler.metrics_handler
+    description: Generate emergency response metrics
+    timeout: 300
+    events:
+      - schedule:
+          rate: rate(1 hour)
+          enabled: true
+          input:
+            action: "generate_metrics"
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+
+resources:
+  Resources:
+    EmergencyAlertsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.EMERGENCY_ALERTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: alert_id
+            AttributeType: S
+          - AttributeName: patient_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+          - AttributeName: urgency_level
+            AttributeType: S
+        KeySchema:
+          - AttributeName: alert_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: PatientIndex
+            KeySchema:
+              - AttributeName: patient_id
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: StatusIndex
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: UrgencyIndex
+            KeySchema:
+              - AttributeName: urgency_level
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+          - Key: Purpose
+            Value: EmergencyAlerts
+    
+    EmergencyContactsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.EMERGENCY_CONTACTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: patient_id
+            AttributeType: S
+          - AttributeName: contact_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patient_id
+            KeyType: HASH
+          - AttributeName: contact_id
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+          - Key: Purpose
+            Value: EmergencyContacts
+    
+    EmergencyResponseTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-${self:provider.stage}-emergency-response
+        DisplayName: HealthConnect Emergency Response
+        KmsMasterKeyId: alias/aws/sns
+        DeliveryStatusLogging:
+          - Protocol: http
+            SuccessFeedbackRoleArn:
+              Fn::GetAtt: [SNSLoggingRole, Arn]
+            FailureFeedbackRoleArn:
+              Fn::GetAtt: [SNSLoggingRole, Arn]
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    EmergencyEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.environment.EVENT_BUS_NAME}
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    EmergencyDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:service}-${self:provider.stage}-emergency-dlq
+        MessageRetentionPeriod: 1209600  # 14 days
+        KmsMasterKeyId: alias/aws/sqs
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    SNSLoggingRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: sns.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: SNSLoggingPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "*"
+    
+    EmergencyResponseLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-emergencyResponse
+        RetentionInDays: 30
+    
+    EmergencyEscalationLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-emergencyEscalation
+        RetentionInDays: 14
+    
+    EmergencyMetricsLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-emergencyMetrics
+        RetentionInDays: 7
+    
+    # CloudWatch Alarms for Emergency Response Monitoring
+    EmergencyResponseErrorAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-emergency-response-errors
+        AlarmDescription: High error rate in emergency response function
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 2
+        Threshold: 5
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value: ${self:service}-${self:provider.stage}-emergencyResponse
+        AlarmActions:
+          - Ref: EmergencyResponseTopic
+    
+    EmergencyResponseLatencyAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${self:provider.stage}-emergency-response-latency
+        AlarmDescription: High latency in emergency response function
+        MetricName: Duration
+        Namespace: AWS/Lambda
+        Statistic: Average
+        Period: 300
+        EvaluationPeriods: 2
+        Threshold: 30000  # 30 seconds
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value: ${self:service}-${self:provider.stage}-emergencyResponse
+        AlarmActions:
+          - Ref: EmergencyResponseTopic
+
+  Outputs:
+    EmergencyResponseApiEndpoint:
+      Description: API Gateway endpoint URL for emergency response
+      Value:
+        Fn::Join:
+          - ''
+          - - https://
+            - Ref: RestApiApigEvent
+            - .execute-api.
+            - ${self:provider.region}
+            - .amazonaws.com/
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-endpoint
+    
+    EmergencyTopicArn:
+      Description: SNS Topic ARN for emergency alerts
+      Value:
+        Ref: EmergencyResponseTopic
+      Export:
+        Name: ${self:service}-${self:provider.stage}-topic-arn
+    
+    EmergencyEventBusArn:
+      Description: EventBridge Event Bus ARN for emergency events
+      Value:
+        Fn::GetAtt: [EmergencyEventBus, Arn]
+      Export:
+        Name: ${self:service}-${self:provider.stage}-event-bus-arn
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+  - serverless-plugin-aws-alerts
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    layer: true
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0/5 * * * ? *)'  # Every 5 minutes for emergency readiness
+    concurrency: 1
+  alerts:
+    stages:
+      - dev
+      - staging
+      - prod
+    topics:
+      alarm:
+        topic: ${self:service}-${self:provider.stage}-alerts
+        notifications:
+          - protocol: email
+            endpoint: alerts@healthconnect.ai
+    alarms:
+      - functionErrors
+      - functionThrottles
+      - functionInvocations
+      - functionDuration

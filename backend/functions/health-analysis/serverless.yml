@@ -1,0 +1,237 @@
+service: healthconnect-health-analysis
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 30
+  memorySize: 1024
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    HEALTH_RECORDS_TABLE: ${self:service}-${self:provider.stage}-health-records
+    ANALYSIS_RESULTS_TABLE: ${self:service}-${self:provider.stage}-analysis-results
+    EMERGENCY_TOPIC_ARN: 
+      Ref: EmergencyAlertTopic
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}-event-bus
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+          Resource: 
+            - arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0
+            - arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+        - Effect: Allow
+          Action:
+            - comprehendmedical:DetectEntitiesV2
+            - comprehendmedical:DetectPHI
+            - comprehendmedical:InferICD10CM
+            - comprehendmedical:InferRxNorm
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - Fn::GetAtt: [HealthRecordsTable, Arn]
+            - Fn::GetAtt: [AnalysisResultsTable, Arn]
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            Ref: EmergencyAlertTopic
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            Fn::GetAtt: [HealthConnectEventBus, Arn]
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  healthAnalysis:
+    handler: handler.lambda_handler
+    description: Analyze patient health data using AWS Bedrock
+    events:
+      - http:
+          path: /analyze
+          method: post
+          cors: true
+          request:
+            schemas:
+              application/json:
+                schema: ${file(../shared/schemas/health_record.json)}
+      - eventBridge:
+          eventBus: ${self:provider.environment.EVENT_BUS_NAME}
+          pattern:
+            source: ["healthconnect.devices"]
+            detail-type: ["Health Data Received"]
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+      - ${cf:healthconnect-medical-models-${self:provider.stage}.MedicalModelsLayerExport}
+    reservedConcurrency: 10
+    
+  batchAnalysis:
+    handler: handler.batch_analysis_handler
+    description: Process batch health analysis requests
+    timeout: 900
+    memorySize: 2048
+    events:
+      - schedule:
+          rate: rate(1 hour)
+          enabled: true
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+      - ${cf:healthconnect-medical-models-${self:provider.stage}.MedicalModelsLayerExport}
+
+resources:
+  Resources:
+    HealthRecordsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.HEALTH_RECORDS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: patient_id
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patient_id
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    AnalysisResultsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ANALYSIS_RESULTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: analysis_id
+            AttributeType: S
+          - AttributeName: patient_id
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: analysis_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: PatientIndex
+            KeySchema:
+              - AttributeName: patient_id
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    EmergencyAlertTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${self:service}-${self:provider.stage}-emergency-alerts
+        DisplayName: HealthConnect Emergency Alerts
+        KmsMasterKeyId: alias/aws/sns
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    HealthConnectEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.environment.EVENT_BUS_NAME}
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    HealthAnalysisLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-healthAnalysis
+        RetentionInDays: 14
+
+  Outputs:
+    HealthAnalysisApiEndpoint:
+      Description: API Gateway endpoint URL for health analysis
+      Value:
+        Fn::Join:
+          - ''
+          - - https://
+            - Ref: RestApiApigEvent
+            - .execute-api.
+            - ${self:provider.region}
+            - .amazonaws.com/
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-endpoint
+    
+    EmergencyTopicArn:
+      Description: SNS Topic ARN for emergency alerts
+      Value:
+        Ref: EmergencyAlertTopic
+      Export:
+        Name: ${self:service}-${self:provider.stage}-emergency-topic-arn
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    layer: true
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0/5 8-17 ? * MON-FRI *)'
+    concurrency: 1
