@@ -1,0 +1,333 @@
+service: healthconnect-analytics-engine
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 900
+  memorySize: 3008
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    ANALYTICS_RESULTS_TABLE: ${self:service}-${self:provider.stage}-analytics-results
+    POPULATION_METRICS_TABLE: ${self:service}-${self:provider.stage}-population-metrics
+    PREDICTIVE_MODELS_TABLE: ${self:service}-${self:provider.stage}-predictive-models
+    ANALYTICS_BUCKET: ${self:service}-${self:provider.stage}-analytics-data
+    ATHENA_DATABASE: healthconnect_analytics_${self:provider.stage}
+    ATHENA_WORKGROUP: ${self:service}-${self:provider.stage}-workgroup
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}-event-bus
+    QUICKSIGHT_ACCOUNT_ID: ${aws:accountId}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+          Resource: 
+            - arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:BatchGetItem
+            - dynamodb:BatchWriteItem
+          Resource:
+            - Fn::GetAtt: [AnalyticsResultsTable, Arn]
+            - Fn::GetAtt: [PopulationMetricsTable, Arn]
+            - Fn::GetAtt: [PredictiveModelsTable, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [AnalyticsResultsTable, Arn]
+                  - 'index/*'
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:ListBucket
+          Resource:
+            - Fn::GetAtt: [AnalyticsBucket, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [AnalyticsBucket, Arn]
+                  - '*'
+        - Effect: Allow
+          Action:
+            - athena:StartQueryExecution
+            - athena:GetQueryExecution
+            - athena:GetQueryResults
+            - athena:StopQueryExecution
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - glue:GetDatabase
+            - glue:GetTable
+            - glue:GetPartitions
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - quicksight:CreateDashboard
+            - quicksight:UpdateDashboard
+            - quicksight:DescribeDashboard
+            - quicksight:ListDashboards
+            - quicksight:CreateDataSet
+            - quicksight:UpdateDataSet
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            Fn::GetAtt: [AnalyticsEventBus, Arn]
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  analyticsEngine:
+    handler: handler.lambda_handler
+    description: Main analytics engine for population health and predictive modeling
+    events:
+      - http:
+          path: /analytics/population
+          method: post
+          cors: true
+      - http:
+          path: /analytics/predictive
+          method: post
+          cors: true
+      - http:
+          path: /analytics/results
+          method: get
+          cors: true
+      - http:
+          path: /analytics/insights
+          method: post
+          cors: true
+      - http:
+          path: /analytics/dashboard
+          method: post
+          cors: true
+      - schedule:
+          rate: rate(6 hours)
+          enabled: true
+          input:
+            analytics_type: "comprehensive"
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+      - ${cf:healthconnect-medical-models-${self:provider.stage}.MedicalModelsLayerExport}
+    reservedConcurrency: 5
+
+resources:
+  Resources:
+    AnalyticsResultsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.ANALYTICS_RESULTS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: analytics_run_id
+            AttributeType: S
+          - AttributeName: analytics_type
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: analytics_run_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: TypeIndex
+            KeySchema:
+              - AttributeName: analytics_type
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    PopulationMetricsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.POPULATION_METRICS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: metric_id
+            AttributeType: S
+          - AttributeName: metric_type
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: metric_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: MetricTypeIndex
+            KeySchema:
+              - AttributeName: metric_type
+                KeyType: HASH
+              - AttributeName: timestamp
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    PredictiveModelsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.PREDICTIVE_MODELS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: model_id
+            AttributeType: S
+          - AttributeName: model_type
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+        KeySchema:
+          - AttributeName: model_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ModelTypeIndex
+            KeySchema:
+              - AttributeName: model_type
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    AnalyticsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.ANALYTICS_BUCKET}
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        LifecycleConfiguration:
+          Rules:
+            - Id: DeleteOldAnalyticsData
+              Status: Enabled
+              ExpirationInDays: 365
+              Transitions:
+                - TransitionInDays: 30
+                  StorageClass: STANDARD_IA
+                - TransitionInDays: 90
+                  StorageClass: GLACIER
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    AnalyticsEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.environment.EVENT_BUS_NAME}
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    AthenaWorkGroup:
+      Type: AWS::Athena::WorkGroup
+      Properties:
+        Name: ${self:provider.environment.ATHENA_WORKGROUP}
+        Description: Analytics workgroup for HealthConnect
+        State: ENABLED
+        WorkGroupConfiguration:
+          ResultConfiguration:
+            OutputLocation: s3://${self:provider.environment.ANALYTICS_BUCKET}/athena-results/
+            EncryptionConfiguration:
+              EncryptionOption: SSE_S3
+          EnforceWorkGroupConfiguration: true
+          PublishCloudWatchMetrics: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+
+  Outputs:
+    AnalyticsApiEndpoint:
+      Description: API Gateway endpoint URL for analytics engine
+      Value:
+        Fn::Join:
+          - ''
+          - - https://
+            - Ref: RestApiApigEvent
+            - .execute-api.
+            - ${self:provider.region}
+            - .amazonaws.com/
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-endpoint
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    layer: true
+    pipCmdExtraArgs:
+      - --no-cache-dir
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0 */6 * * ? *)'
+    concurrency: 1

@@ -1,0 +1,73 @@
+service: healthconnect-ai
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    SERVICE_NAME: ${self:service}
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+# Import all service configurations
+resources:
+  - ${file(functions/health-analysis/serverless.yml)}
+  - ${file(functions/device-simulator/serverless.yml)}
+  - ${file(functions/emergency-response/serverless.yml)}
+  - ${file(functions/consultation-api/serverless.yml)}
+  - ${file(functions/analytics-engine/serverless.yml)}
+  - ${file(functions/websocket-api/connect/serverless.yml)}
+  - ${file(functions/websocket-api/disconnect/serverless.yml)}
+  - ${file(functions/websocket-api/message/serverless.yml)}
+
+# Global outputs
+outputs:
+  HealthConnectApiEndpoints:
+    Description: All HealthConnect AI API endpoints
+    Value:
+      HealthAnalysis: ${cf:healthconnect-health-analysis-${self:provider.stage}.HealthAnalysisApiEndpoint}
+      DeviceSimulator: ${cf:healthconnect-device-simulator-${self:provider.stage}.DeviceSimulatorApiEndpoint}
+      EmergencyResponse: ${cf:healthconnect-emergency-response-${self:provider.stage}.EmergencyResponseApiEndpoint}
+      ConsultationApi: ${cf:healthconnect-consultation-api-${self:provider.stage}.ConsultationApiEndpoint}
+      AnalyticsEngine: ${cf:healthconnect-analytics-engine-${self:provider.stage}.AnalyticsApiEndpoint}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+  - serverless-plugin-aws-alerts
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0/5 8-17 ? * MON-FRI *)'
+    concurrency: 1
+  alerts:
+    stages:
+      - dev
+      - staging
+      - prod
+    topics:
+      alarm:
+        topic: ${self:service}-${self:provider.stage}-alerts
+        notifications:
+          - protocol: email
+            endpoint: alerts@healthconnect.ai

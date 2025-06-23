@@ -1,0 +1,353 @@
+service: healthconnect-consultation-api
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 300
+  memorySize: 1024
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    CONSULTATION_SESSIONS_TABLE: ${self:service}-${self:provider.stage}-consultation-sessions
+    HEALTHCARE_PROVIDERS_TABLE: ${self:service}-${self:provider.stage}-healthcare-providers
+    CONSULTATION_QUEUE_TABLE: ${self:service}-${self:provider.stage}-consultation-queue
+    WEBSOCKET_CONNECTIONS_TABLE: ${self:service}-${self:provider.stage}-websocket-connections
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}-event-bus
+    WEBSOCKET_API_ENDPOINT: ${cf:healthconnect-websocket-${self:provider.stage}.WebSocketApiEndpoint}
+    BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - bedrock:InvokeModel
+            - bedrock:InvokeModelWithResponseStream
+          Resource: 
+            - arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0
+            - arn:aws:bedrock:${self:provider.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - Fn::GetAtt: [ConsultationSessionsTable, Arn]
+            - Fn::GetAtt: [HealthcareProvidersTable, Arn]
+            - Fn::GetAtt: [ConsultationQueueTable, Arn]
+            - Fn::GetAtt: [WebSocketConnectionsTable, Arn]
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [ConsultationSessionsTable, Arn]
+                  - 'index/*'
+            - Fn::Join:
+                - '/'
+                - - Fn::GetAtt: [HealthcareProvidersTable, Arn]
+                  - 'index/*'
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            Fn::GetAtt: [ConsultationEventBus, Arn]
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource:
+            - arn:aws:execute-api:${self:provider.region}:${aws:accountId}:*/*/*/*
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  consultationApi:
+    handler: handler.lambda_handler
+    description: Handle consultation API requests
+    events:
+      - http:
+          path: /consultation
+          method: post
+          cors: true
+      - http:
+          path: /consultation
+          method: get
+          cors: true
+      - http:
+          path: /consultation
+          method: put
+          cors: true
+      - http:
+          path: /consultation/{session_id}
+          method: delete
+          cors: true
+      - http:
+          path: /providers
+          method: post
+          cors: true
+      - http:
+          path: /queue
+          method: post
+          cors: true
+      - eventBridge:
+          eventBus: ${self:provider.environment.EVENT_BUS_NAME}
+          pattern:
+            source: ["healthconnect.emergency"]
+            detail-type: ["Emergency Consultation Request"]
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+      - ${cf:healthconnect-medical-models-${self:provider.stage}.MedicalModelsLayerExport}
+    reservedConcurrency: 10
+    
+  queueProcessor:
+    handler: handler.queue_processor_handler
+    description: Process consultation queue and assign providers
+    timeout: 900
+    events:
+      - schedule:
+          rate: rate(2 minutes)
+          enabled: true
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+
+resources:
+  Resources:
+    ConsultationSessionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.CONSULTATION_SESSIONS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: session_id
+            AttributeType: S
+          - AttributeName: patient_id
+            AttributeType: S
+          - AttributeName: provider_id
+            AttributeType: S
+          - AttributeName: created_at
+            AttributeType: S
+          - AttributeName: status
+            AttributeType: S
+        KeySchema:
+          - AttributeName: session_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: PatientIndex
+            KeySchema:
+              - AttributeName: patient_id
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: ProviderIndex
+            KeySchema:
+              - AttributeName: provider_id
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: StatusIndex
+            KeySchema:
+              - AttributeName: status
+                KeyType: HASH
+              - AttributeName: created_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    HealthcareProvidersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.HEALTHCARE_PROVIDERS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: provider_id
+            AttributeType: S
+          - AttributeName: provider_type
+            AttributeType: S
+          - AttributeName: availability_status
+            AttributeType: S
+        KeySchema:
+          - AttributeName: provider_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: ProviderTypeIndex
+            KeySchema:
+              - AttributeName: provider_type
+                KeyType: HASH
+              - AttributeName: availability_status
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+          - IndexName: AvailabilityIndex
+            KeySchema:
+              - AttributeName: availability_status
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    ConsultationQueueTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.CONSULTATION_QUEUE_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: queue_id
+            AttributeType: S
+          - AttributeName: urgency_level
+            AttributeType: S
+          - AttributeName: queued_at
+            AttributeType: S
+        KeySchema:
+          - AttributeName: queue_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UrgencyIndex
+            KeySchema:
+              - AttributeName: urgency_level
+                KeyType: HASH
+              - AttributeName: queued_at
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    WebSocketConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.WEBSOCKET_CONNECTIONS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: connection_id
+            AttributeType: S
+          - AttributeName: session_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connection_id
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: SessionIndex
+            KeySchema:
+              - AttributeName: session_id
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    ConsultationEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.environment.EVENT_BUS_NAME}
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    ConsultationApiLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-consultationApi
+        RetentionInDays: 14
+
+  Outputs:
+    ConsultationApiEndpoint:
+      Description: API Gateway endpoint URL for consultation API
+      Value:
+        Fn::Join:
+          - ''
+          - - https://
+            - Ref: RestApiApigEvent
+            - .execute-api.
+            - ${self:provider.region}
+            - .amazonaws.com/
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-endpoint
+    
+    ConsultationFunctionArn:
+      Description: Consultation Lambda function ARN
+      Value:
+        Fn::GetAtt: [ConsultationApiLambdaFunction, Arn]
+      Export:
+        Name: ${self:service}-${self:provider.stage}-function-arn
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    layer: true
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0/5 8-17 ? * MON-FRI *)'
+    concurrency: 1
