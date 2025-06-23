@@ -1,0 +1,18 @@
+{
+    "Parameters": {
+      "Environment": "staging",
+      "ProjectName": "healthconnect-ai",
+      "VpcCidr": "10.1.0.0/16",
+      "DatabaseUsername": "healthconnect_admin",
+      "DatabasePassword": "StagingPassword456!",
+      "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/staging-cert-id"
+    },
+    "Tags": {
+      "Environment": "staging",
+      "Project": "HealthConnect-AI",
+      "Owner": "QA-Team",
+      "CostCenter": "Healthcare-Innovation",
+      "Compliance": "HIPAA"
+    }
+  }
+  

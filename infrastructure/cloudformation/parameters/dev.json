@@ -1,0 +1,18 @@
+{
+    "Parameters": {
+      "Environment": "dev",
+      "ProjectName": "healthconnect-ai",
+      "VpcCidr": "10.0.0.0/16",
+      "DatabaseUsername": "healthconnect_admin",
+      "DatabasePassword": "TempPassword123!",
+      "CertificateArn": ""
+    },
+    "Tags": {
+      "Environment": "dev",
+      "Project": "HealthConnect-AI",
+      "Owner": "Development-Team",
+      "CostCenter": "Healthcare-Innovation",
+      "Compliance": "HIPAA"
+    }
+  }
+  

@@ -1,0 +1,18 @@
+{
+    "Parameters": {
+      "Environment": "prod",
+      "ProjectName": "healthconnect-ai",
+      "VpcCidr": "10.2.0.0/16",
+      "DatabaseUsername": "healthconnect_admin",
+      "DatabasePassword": "ProductionPassword789!",
+      "CertificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/prod-cert-id"
+    },
+    "Tags": {
+      "Environment": "prod",
+      "Project": "HealthConnect-AI",
+      "Owner": "Production-Team",
+      "CostCenter": "Healthcare-Innovation",
+      "Compliance": "HIPAA"
+    }
+  }
+  
