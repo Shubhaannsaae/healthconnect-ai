@@ -1,0 +1,199 @@
+service: healthconnect-device-simulator
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  timeout: 300
+  memorySize: 1024
+  
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+    DEVICE_REGISTRY_TABLE: ${self:service}-${self:provider.stage}-device-registry
+    DEVICE_DATA_TABLE: ${self:service}-${self:provider.stage}-device-data
+    IOT_ENDPOINT: ${cf:healthconnect-iot-${self:provider.stage}.IoTEndpoint}
+    EVENT_BUS_NAME: ${self:service}-${self:provider.stage}-event-bus
+  
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - iot:Publish
+            - iot:Connect
+          Resource: 
+            - arn:aws:iot:${self:provider.region}:${aws:accountId}:topic/healthconnect/devices/*/data
+            - arn:aws:iot:${self:provider.region}:${aws:accountId}:client/*
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:Scan
+          Resource:
+            - Fn::GetAtt: [DeviceRegistryTable, Arn]
+            - Fn::GetAtt: [DeviceDataTable, Arn]
+        - Effect: Allow
+          Action:
+            - events:PutEvents
+          Resource:
+            Fn::GetAtt: [DeviceSimulatorEventBus, Arn]
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  deviceSimulator:
+    handler: handler.lambda_handler
+    description: Simulate IoT health devices
+    events:
+      - http:
+          path: /simulate
+          method: post
+          cors: true
+      - http:
+          path: /devices
+          method: get
+          cors: true
+      - http:
+          path: /devices/{device_id}
+          method: get
+          cors: true
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+    reservedConcurrency: 5
+    
+  scheduledSimulation:
+    handler: handler.lambda_handler
+    description: Run scheduled device simulation
+    events:
+      - schedule:
+          rate: rate(5 minutes)
+          enabled: true
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+    
+  cleanupSimulation:
+    handler: handler.cleanup_simulation_handler
+    description: Clean up simulation devices and data
+    events:
+      - http:
+          path: /cleanup
+          method: post
+          cors: true
+    layers:
+      - ${cf:healthconnect-common-utils-${self:provider.stage}.CommonUtilsLayerExport}
+
+resources:
+  Resources:
+    DeviceRegistryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DEVICE_REGISTRY_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: device_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: device_id
+            KeyType: HASH
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    DeviceDataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DEVICE_DATA_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: device_id
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: S
+        KeySchema:
+          - AttributeName: device_id
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        PointInTimeRecoverySpecification:
+          PointInTimeRecoveryEnabled: true
+        SSESpecification:
+          SSEEnabled: true
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    DeviceSimulatorEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.environment.EVENT_BUS_NAME}
+        Tags:
+          - Key: Service
+            Value: ${self:service}
+          - Key: Stage
+            Value: ${self:provider.stage}
+    
+    DeviceSimulatorLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/lambda/${self:service}-${self:provider.stage}-deviceSimulator
+        RetentionInDays: 14
+
+  Outputs:
+    DeviceSimulatorApiEndpoint:
+      Description: API Gateway endpoint URL for device simulator
+      Value:
+        Fn::Join:
+          - ''
+          - - https://
+            - Ref: RestApiApigEvent
+            - .execute-api.
+            - ${self:provider.region}
+            - .amazonaws.com/
+            - ${self:provider.stage}
+      Export:
+        Name: ${self:service}-${self:provider.stage}-api-endpoint
+
+plugins:
+  - serverless-python-requirements
+  - serverless-plugin-warmup
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    slim: true
+    strip: false
+    layer: true
+  warmup:
+    enabled: true
+    events:
+      - schedule: 'cron(0/5 8-17 ? * MON-FRI *)'
+    concurrency: 1
