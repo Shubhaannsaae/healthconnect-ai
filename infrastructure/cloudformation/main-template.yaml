@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'HealthConnect AI - Main CloudFormation Template'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+  
+  ProjectName:
+    Type: String
+    Default: healthconnect-ai
+    Description: Project name for resource naming
+  
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for VPC
+  
+  DatabaseUsername:
+    Type: String
+    Default: healthconnect_admin
+    Description: Database administrator username
+    NoEcho: true
+  
+  DatabasePassword:
+    Type: String
+    MinLength: 12
+    Description: Database administrator password
+    NoEcho: true
+  
+  CertificateArn:
+    Type: String
+    Description: SSL Certificate ARN for HTTPS
+    Default: ''
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, prod]
+  HasCertificate: !Not [!Equals [!Ref CertificateArn, '']]
+
+Resources:
+  # VPC and Networking
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/vpc.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        VpcCidr: !Ref VpcCidr
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # S3 Buckets
+  S3Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/s3-buckets.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # DynamoDB Tables
+  DynamoDBStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/dynamodb.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # IoT Core
+  IoTStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/iot-core.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        DeviceDataTable: !GetAtt DynamoDBStack.Outputs.DeviceDataTableName
+        DeviceRegistryTable: !GetAtt DynamoDBStack.Outputs.DeviceRegistryTableName
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # Lambda Functions
+  LambdaStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [DynamoDBStack, S3Stack, IoTStack]
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/lambda-functions.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        VpcId: !GetAtt VPCStack.Outputs.VpcId
+        PrivateSubnetIds: !GetAtt VPCStack.Outputs.PrivateSubnetIds
+        HealthRecordsTable: !GetAtt DynamoDBStack.Outputs.HealthRecordsTableName
+        DeviceDataTable: !GetAtt DynamoDBStack.Outputs.DeviceDataTableName
+        AnalyticsBucket: !GetAtt S3Stack.Outputs.AnalyticsBucketName
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # API Gateway
+  APIGatewayStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: LambdaStack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/api-gateway.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        HealthAnalysisLambdaArn: !GetAtt LambdaStack.Outputs.HealthAnalysisLambdaArn
+        DeviceSimulatorLambdaArn: !GetAtt LambdaStack.Outputs.DeviceSimulatorLambdaArn
+        EmergencyResponseLambdaArn: !GetAtt LambdaStack.Outputs.EmergencyResponseLambdaArn
+        ConsultationApiLambdaArn: !GetAtt LambdaStack.Outputs.ConsultationApiLambdaArn
+        AnalyticsEngineLambdaArn: !GetAtt LambdaStack.Outputs.AnalyticsEngineLambdaArn
+        CertificateArn: !Ref CertificateArn
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # Cognito User Pool
+  CognitoStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/cognito.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # Monitoring and Alerting
+  MonitoringStack:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: [LambdaStack, APIGatewayStack, DynamoDBStack]
+    Properties:
+      TemplateURL: !Sub 'https://s3.amazonaws.com/${ProjectName}-cfn-templates/nested-stacks/monitoring.yaml'
+      Parameters:
+        Environment: !Ref Environment
+        ProjectName: !Ref ProjectName
+        ApiGatewayId: !GetAtt APIGatewayStack.Outputs.RestApiId
+        LambdaFunctionNames: !GetAtt LambdaStack.Outputs.LambdaFunctionNames
+        DynamoDBTableNames: !GetAtt DynamoDBStack.Outputs.TableNames
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: !Ref ProjectName
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !GetAtt VPCStack.Outputs.VpcId
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-VpcId'
+
+  ApiGatewayUrl:
+    Description: API Gateway URL
+    Value: !GetAtt APIGatewayStack.Outputs.ApiGatewayUrl
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-ApiUrl'
+
+  WebSocketApiUrl:
+    Description: WebSocket API URL
+    Value: !GetAtt APIGatewayStack.Outputs.WebSocketApiUrl
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-WebSocketUrl'
+
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !GetAtt CognitoStack.Outputs.UserPoolId
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-UserPoolId'
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !GetAtt CognitoStack.Outputs.UserPoolClientId
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-UserPoolClientId'
+
+  AnalyticsBucket:
+    Description: Analytics S3 Bucket Name
+    Value: !GetAtt S3Stack.Outputs.AnalyticsBucketName
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-AnalyticsBucket'

@@ -1,0 +1,370 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'HealthConnect AI - Lambda Functions Stack'
+
+Parameters:
+  Environment:
+    Type: String
+  ProjectName:
+    Type: String
+  VpcId:
+    Type: String
+  PrivateSubnetIds:
+    Type: CommaDelimitedList
+  HealthRecordsTable:
+    Type: String
+  DeviceDataTable:
+    Type: String
+  AnalyticsBucket:
+    Type: String
+
+Resources:
+  # Common Lambda Execution Role
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-lambda-execution-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: HealthConnectLambdaPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}-*'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${ProjectName}-*/index/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ProjectName}-*'
+                  - !Sub 'arn:aws:s3:::${ProjectName}-*/*'
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0'
+                  - !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'
+              - Effect: Allow
+                Action:
+                  - iot:Publish
+                  - iot:Connect
+                Resource:
+                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/*/data'
+                  - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/*'
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource:
+                  - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${ProjectName}-*'
+              - Effect: Allow
+                Action:
+                  - events:PutEvents
+                Resource:
+                  - !Sub 'arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/${ProjectName}-*'
+              - Effect: Allow
+                Action:
+                  - comprehendmedical:DetectEntitiesV2
+                  - comprehendmedical:DetectPHI
+                  - comprehendmedical:InferICD10CM
+                  - comprehendmedical:InferRxNorm
+                Resource: '*'
+
+  # Lambda Security Group
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${ProjectName}-lambda-sg-${Environment}'
+      GroupDescription: Security group for Lambda functions
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS outbound
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP outbound
+
+  # Health Analysis Lambda Function
+  HealthAnalysisFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-health-analysis-${Environment}'
+      Description: AI-powered health data analysis using AWS Bedrock
+      Runtime: python3.11
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Sub '${ProjectName}-lambda-code-${Environment}'
+        S3Key: health-analysis.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      ReservedConcurrencyLimit: 10
+      Environment:
+        Variables:
+          STAGE: !Ref Environment
+          REGION: !Ref AWS::Region
+          HEALTH_RECORDS_TABLE: !Ref HealthRecordsTable
+          BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
+          LOG_LEVEL: INFO
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnetIds
+      DeadLetterQueue:
+        TargetArn: !GetAtt HealthAnalysisDLQ.Arn
+      TracingConfig:
+        Mode: Active
+
+  HealthAnalysisDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-health-analysis-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600  # 14 days
+      KmsMasterKeyId: alias/aws/sqs
+
+  # Device Simulator Lambda Function
+  DeviceSimulatorFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-device-simulator-${Environment}'
+      Description: IoT device simulator for HealthConnect AI
+      Runtime: python3.11
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Sub '${ProjectName}-lambda-code-${Environment}'
+        S3Key: device-simulator.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      ReservedConcurrencyLimit: 5
+      Environment:
+        Variables:
+          STAGE: !Ref Environment
+          REGION: !Ref AWS::Region
+          DEVICE_DATA_TABLE: !Ref DeviceDataTable
+          IOT_ENDPOINT: !Sub 'https://a${AWS::AccountId}-ats.iot.${AWS::Region}.amazonaws.com'
+          LOG_LEVEL: INFO
+      TracingConfig:
+        Mode: Active
+
+  # Emergency Response Lambda Function
+  EmergencyResponseFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-emergency-response-${Environment}'
+      Description: Emergency response system for HealthConnect AI
+      Runtime: python3.11
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Sub '${ProjectName}-lambda-code-${Environment}'
+        S3Key: emergency-response.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      ReservedConcurrencyLimit: 10
+      Environment:
+        Variables:
+          STAGE: !Ref Environment
+          REGION: !Ref AWS::Region
+          EMERGENCY_TOPIC_ARN: !Ref EmergencyTopic
+          LOG_LEVEL: INFO
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnetIds
+      DeadLetterQueue:
+        TargetArn: !GetAtt EmergencyResponseDLQ.Arn
+      TracingConfig:
+        Mode: Active
+
+  EmergencyResponseDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${ProjectName}-emergency-response-dlq-${Environment}'
+      MessageRetentionPeriod: 1209600  # 14 days
+      KmsMasterKeyId: alias/aws/sqs
+
+  # Consultation API Lambda Function
+  ConsultationApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-consultation-api-${Environment}'
+      Description: Consultation API with WebRTC signaling for HealthConnect AI
+      Runtime: python3.11
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Sub '${ProjectName}-lambda-code-${Environment}'
+        S3Key: consultation-api.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 1024
+      ReservedConcurrencyLimit: 10
+      Environment:
+        Variables:
+          STAGE: !Ref Environment
+          REGION: !Ref AWS::Region
+          BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
+          LOG_LEVEL: INFO
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnetIds
+      TracingConfig:
+        Mode: Active
+
+  # Analytics Engine Lambda Function
+  AnalyticsEngineFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${ProjectName}-analytics-engine-${Environment}'
+      Description: Analytics engine for population health and predictive modeling
+      Runtime: python3.11
+      Handler: handler.lambda_handler
+      Code:
+        S3Bucket: !Sub '${ProjectName}-lambda-code-${Environment}'
+        S3Key: analytics-engine.zip
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 900
+      MemorySize: 3008
+      ReservedConcurrencyLimit: 5
+      Environment:
+        Variables:
+          STAGE: !Ref Environment
+          REGION: !Ref AWS::Region
+          ANALYTICS_BUCKET: !Ref AnalyticsBucket
+          BEDROCK_MODEL_ID: anthropic.claude-3-sonnet-20240229-v1:0
+          LOG_LEVEL: INFO
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds: !Ref PrivateSubnetIds
+      TracingConfig:
+        Mode: Active
+
+  # Emergency SNS Topic
+  EmergencyTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${ProjectName}-emergency-${Environment}'
+      DisplayName: !Sub 'HealthConnect Emergency Alerts - ${Environment}'
+      KmsMasterKeyId: alias/aws/sns
+
+  # Scheduled Events for Analytics
+  AnalyticsScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${ProjectName}-analytics-schedule-${Environment}'
+      Description: Scheduled analytics processing
+      ScheduleExpression: 'rate(6 hours)'
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt AnalyticsEngineFunction.Arn
+          Id: AnalyticsEngineTarget
+          Input: !Sub |
+            {
+              "source": "aws.events",
+              "analytics_type": "comprehensive"
+            }
+
+  AnalyticsSchedulePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AnalyticsEngineFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt AnalyticsScheduleRule.Arn
+
+  # Device Simulation Schedule
+  DeviceSimulationRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${ProjectName}-device-simulation-${Environment}'
+      Description: Scheduled device simulation
+      ScheduleExpression: 'rate(5 minutes)'
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt DeviceSimulatorFunction.Arn
+          Id: DeviceSimulatorTarget
+          Input: !Sub |
+            {
+              "source": "aws.events",
+              "action": "scheduled_simulation"
+            }
+
+  DeviceSimulationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DeviceSimulatorFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt DeviceSimulationRule.Arn
+
+Outputs:
+  HealthAnalysisLambdaArn:
+    Description: Health Analysis Lambda Function ARN
+    Value: !GetAtt HealthAnalysisFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-HealthAnalysisLambdaArn'
+
+  DeviceSimulatorLambdaArn:
+    Description: Device Simulator Lambda Function ARN
+    Value: !GetAtt DeviceSimulatorFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-DeviceSimulatorLambdaArn'
+
+  EmergencyResponseLambdaArn:
+    Description: Emergency Response Lambda Function ARN
+    Value: !GetAtt EmergencyResponseFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-EmergencyResponseLambdaArn'
+
+  ConsultationApiLambdaArn:
+    Description: Consultation API Lambda Function ARN
+    Value: !GetAtt ConsultationApiFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-ConsultationApiLambdaArn'
+
+  AnalyticsEngineLambdaArn:
+    Description: Analytics Engine Lambda Function ARN
+    Value: !GetAtt AnalyticsEngineFunction.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-AnalyticsEngineLambdaArn'
+
+  LambdaFunctionNames:
+    Description: Comma-separated list of Lambda function names
+    Value: !Sub '${HealthAnalysisFunction},${DeviceSimulatorFunction},${EmergencyResponseFunction},${ConsultationApiFunction},${AnalyticsEngineFunction}'
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-LambdaFunctionNames'
+
+  EmergencyTopicArn:
+    Description: Emergency SNS Topic ARN
+    Value: !Ref EmergencyTopic
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-EmergencyTopicArn'

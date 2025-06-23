@@ -1,0 +1,279 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'HealthConnect AI - IoT Core Stack'
+
+Parameters:
+  Environment:
+    Type: String
+  ProjectName:
+    Type: String
+  DeviceDataTable:
+    Type: String
+  DeviceRegistryTable:
+    Type: String
+
+Resources:
+  # IoT Thing Types
+  HeartRateMonitorType:
+    Type: AWS::IoT::ThingType
+    Properties:
+      ThingTypeName: !Sub '${ProjectName}-HeartRateMonitor-${Environment}'
+      ThingTypeDescription: Heart rate monitoring devices
+      ThingTypeProperties:
+        ThingTypeDescription: Continuous heart rate monitoring device
+        SearchableAttributes:
+          - manufacturer
+          - model
+          - firmware_version
+          - patient_id
+          - location
+
+  BloodPressureMonitorType:
+    Type: AWS::IoT::ThingType
+    Properties:
+      ThingTypeName: !Sub '${ProjectName}-BloodPressureMonitor-${Environment}'
+      ThingTypeDescription: Blood pressure monitoring devices
+      ThingTypeProperties:
+        ThingTypeDescription: Automated blood pressure monitoring device
+        SearchableAttributes:
+          - manufacturer
+          - model
+          - calibration_date
+          - patient_id
+          - location
+
+  GlucoseMonitorType:
+    Type: AWS::IoT::ThingType
+    Properties:
+      ThingTypeName: !Sub '${ProjectName}-GlucoseMonitor-${Environment}'
+      ThingTypeDescription: Continuous glucose monitoring devices
+      ThingTypeProperties:
+        ThingTypeDescription: Continuous glucose monitoring device
+        SearchableAttributes:
+          - manufacturer
+          - model
+          - sensor_expiry
+          - patient_id
+          - location
+
+  # IoT Policies
+  DevicePolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: !Sub '${ProjectName}-DevicePolicy-${Environment}'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iot:Connect
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/${iot:Connection.Thing.ThingName}'
+          - Effect: Allow
+            Action:
+              - iot:Publish
+            Resource:
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/${iot:Connection.Thing.ThingName}/data'
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/${iot:Connection.Thing.ThingName}/status'
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/${iot:Connection.Thing.ThingName}/alerts'
+          - Effect: Allow
+            Action:
+              - iot:Subscribe
+            Resource:
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/healthconnect/devices/${iot:Connection.Thing.ThingName}/commands'
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/healthconnect/devices/${iot:Connection.Thing.ThingName}/config'
+          - Effect: Allow
+            Action:
+              - iot:Receive
+            Resource:
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/${iot:Connection.Thing.ThingName}/commands'
+              - !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/healthconnect/devices/${iot:Connection.Thing.ThingName}/config'
+          - Effect: Allow
+            Action:
+              - iot:UpdateThingShadow
+              - iot:GetThingShadow
+            Resource: !Sub 'arn:aws:iot:${AWS::Region}:${AWS::AccountId}:thing/${iot:Connection.Thing.ThingName}'
+
+  # IoT Rules Role
+  IoTRulesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${ProjectName}-IoTRules-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: IoTRulesPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeviceDataTable}'
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DeviceRegistryTable}'
+              - Effect: Allow
+                Action:
+                  - kinesis:PutRecord
+                  - kinesis:PutRecords
+                Resource:
+                  - !Sub 'arn:aws:kinesis:${AWS::Region}:${AWS::AccountId}:stream/${ProjectName}-*'
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-*'
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource:
+                  - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${ProjectName}-*'
+
+  # Device Data Processing Rule
+  DeviceDataRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}_DeviceData_${Environment}'
+      TopicRulePayload:
+        Description: Process and store device health data
+        Sql: !Sub "SELECT *, timestamp() as received_timestamp, topic() as topic FROM 'healthconnect/devices/+/data'"
+        RuleDisabled: false
+        Actions:
+          - DynamoDBv2:
+              RoleArn: !GetAtt IoTRulesRole.Arn
+              PutItem:
+                TableName: !Ref DeviceDataTable
+          - Kinesis:
+              RoleArn: !GetAtt IoTRulesRole.Arn
+              StreamName: !Sub '${ProjectName}-device-data-${Environment}'
+              PartitionKey: '${device_id}'
+
+  # Emergency Alert Rule
+  EmergencyAlertRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}_EmergencyAlert_${Environment}'
+      TopicRulePayload:
+        Description: Process emergency alerts from devices
+        Sql: !Sub "SELECT *, timestamp() as received_timestamp FROM 'healthconnect/emergency/+' WHERE urgency_level = 'CRITICAL' OR urgency_level = 'HIGH'"
+        RuleDisabled: false
+        Actions:
+          - Lambda:
+              FunctionArn: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-emergency-response-${Environment}'
+          - Sns:
+              RoleArn: !GetAtt IoTRulesRole.Arn
+              TargetArn: !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${ProjectName}-emergency-${Environment}'
+              MessageFormat: RAW
+
+  # Device Status Update Rule
+  DeviceStatusRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}_DeviceStatus_${Environment}'
+      TopicRulePayload:
+        Description: Update device status and registry information
+        Sql: !Sub "SELECT *, timestamp() as last_seen FROM 'healthconnect/devices/+/status'"
+        RuleDisabled: false
+        Actions:
+          - DynamoDBv2:
+              RoleArn: !GetAtt IoTRulesRole.Arn
+              PutItem:
+                TableName: !Ref DeviceRegistryTable
+
+  # Anomaly Detection Rule
+  AnomalyDetectionRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub '${ProjectName}_AnomalyDetection_${Environment}'
+      TopicRulePayload:
+        Description: Detect anomalies in health data
+        Sql: !Sub |
+          SELECT * FROM 'healthconnect/devices/+/data' 
+          WHERE (heart_rate < 40 OR heart_rate > 150) 
+          OR (systolic_pressure > 200 OR systolic_pressure < 80)
+          OR (oxygen_saturation < 88)
+          OR (temperature > 40.0 OR temperature < 35.0)
+        RuleDisabled: false
+        Actions:
+          - Lambda:
+              FunctionArn: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${ProjectName}-health-analysis-${Environment}'
+
+  # Device Groups
+  HeartRateMonitorsGroup:
+    Type: AWS::IoT::ThingGroup
+    Properties:
+      ThingGroupName: !Sub '${ProjectName}-HeartRateMonitors-${Environment}'
+      ThingGroupProperties:
+        ThingGroupDescription: Group for Heart Rate Monitor devices
+        AttributePayload:
+          Attributes:
+            DeviceCategory: HeartRateMonitors
+            Environment: !Ref Environment
+            Project: !Ref ProjectName
+
+  BloodPressureMonitorsGroup:
+    Type: AWS::IoT::ThingGroup
+    Properties:
+      ThingGroupName: !Sub '${ProjectName}-BloodPressureMonitors-${Environment}'
+      ThingGroupProperties:
+        ThingGroupDescription: Group for Blood Pressure Monitor devices
+        AttributePayload:
+          Attributes:
+            DeviceCategory: BloodPressureMonitors
+            Environment: !Ref Environment
+            Project: !Ref ProjectName
+
+  GlucoseMonitorsGroup:
+    Type: AWS::IoT::ThingGroup
+    Properties:
+      ThingGroupName: !Sub '${ProjectName}-GlucoseMonitors-${Environment}'
+      ThingGroupProperties:
+        ThingGroupDescription: Group for Glucose Monitor devices
+        AttributePayload:
+          Attributes:
+            DeviceCategory: GlucoseMonitors
+            Environment: !Ref Environment
+            Project: !Ref ProjectName
+
+  # Kinesis Stream for Real-time Processing
+  DeviceDataStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: !Sub '${ProjectName}-device-data-${Environment}'
+      ShardCount: !If [IsProduction, 2, 1]
+      RetentionPeriodHours: 24
+      StreamEncryption:
+        EncryptionType: KMS
+        KeyId: alias/aws/kinesis
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, prod]
+
+Outputs:
+  DeviceDataRuleArn:
+    Description: Device Data Rule ARN
+    Value: !GetAtt DeviceDataRule.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-DeviceDataRuleArn'
+
+  EmergencyAlertRuleArn:
+    Description: Emergency Alert Rule ARN
+    Value: !GetAtt EmergencyAlertRule.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-EmergencyAlertRuleArn'
+
+  DeviceDataStreamArn:
+    Description: Device Data Kinesis Stream ARN
+    Value: !GetAtt DeviceDataStream.Arn
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-DeviceDataStreamArn'
+
+  IoTEndpoint:
+    Description: IoT Core Endpoint
+    Value: !Sub 'https://a${AWS::AccountId}-ats.iot.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: !Sub '${ProjectName}-${Environment}-IoTEndpoint'
