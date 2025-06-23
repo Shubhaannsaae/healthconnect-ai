@@ -1,0 +1,131 @@
+{
+    "name": "HealthConnect AI",
+    "short_name": "HealthConnect",
+    "description": "Advanced AI-powered healthcare platform for remote patient monitoring and telemedicine",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0ea5e9",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en-US",
+    "categories": ["health", "medical", "productivity"],
+    "icons": [
+      {
+        "src": "/icons/icon-72x72.png",
+        "sizes": "72x72",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-96x96.png",
+        "sizes": "96x96",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-128x128.png",
+        "sizes": "128x128",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-144x144.png",
+        "sizes": "144x144",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-152x152.png",
+        "sizes": "152x152",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-384x384.png",
+        "sizes": "384x384",
+        "type": "image/png",
+        "purpose": "maskable any"
+      },
+      {
+        "src": "/icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable any"
+      }
+    ],
+    "shortcuts": [
+      {
+        "name": "Dashboard",
+        "short_name": "Dashboard",
+        "description": "View your health dashboard",
+        "url": "/dashboard",
+        "icons": [
+          {
+            "src": "/icons/dashboard-96x96.png",
+            "sizes": "96x96"
+          }
+        ]
+      },
+      {
+        "name": "Emergency",
+        "short_name": "Emergency",
+        "description": "Emergency health alert",
+        "url": "/emergency",
+        "icons": [
+          {
+            "src": "/icons/emergency-96x96.png",
+            "sizes": "96x96"
+          }
+        ]
+      },
+      {
+        "name": "Consultation",
+        "short_name": "Consult",
+        "description": "Start a consultation",
+        "url": "/consultation",
+        "icons": [
+          {
+            "src": "/icons/consultation-96x96.png",
+            "sizes": "96x96"
+          }
+        ]
+      }
+    ],
+    "screenshots": [
+      {
+        "src": "/screenshots/dashboard-wide.png",
+        "sizes": "1280x720",
+        "type": "image/png",
+        "form_factor": "wide",
+        "label": "HealthConnect Dashboard"
+      },
+      {
+        "src": "/screenshots/dashboard-narrow.png",
+        "sizes": "375x812",
+        "type": "image/png",
+        "form_factor": "narrow",
+        "label": "HealthConnect Mobile Dashboard"
+      }
+    ],
+    "related_applications": [
+      {
+        "platform": "webapp",
+        "url": "https://healthconnect-ai.com/manifest.json"
+      }
+    ],
+    "prefer_related_applications": false,
+    "edge_side_panel": {
+      "preferred_width": 400
+    },
+    "launch_handler": {
+      "client_mode": "focus-existing"
+    }
+  }
+  
